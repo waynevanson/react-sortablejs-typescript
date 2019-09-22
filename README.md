@@ -1,44 +1,105 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# tsc-react-sortablejs
+React component written in Typescript
 
-## Available Scripts
+## Features
++ Typescript support!
++ Drag and Drop between lists
++ Nested lists
++ Calculates items in list automatically
++ Full API of SortableJS
++ Convenient SortableJS API via `props`
++ Controlled and Uncontrolled components
++ Sortable Utilities
++ Compatible with third part UI libraries
++ SortableJS Plugin Support
 
-In the project directory, you can run:
+If you find any features lacking, create an issue and/or pull request.
 
-### `npm start`
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Upgrading to Major Version `+2.0.0` 
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+There are a number of API changes that are breaking. `react-sortablejs` was lacking many features ofit's sibling intergrations, such as in `vuedraggable`.
 
-### `npm test`
+### `list`
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The `list` prop takes the state you'd like to as a list. This is then changed inside `ReactSortable` to manage the state for you.
 
-### `npm run build`
+This is primarily used to return state for you in the new `onChange` prop.
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### `onChange`
+``` tsx
+// OLD API
+<ReactSortable onChange={(order: string[], Sortable: SortableJS, evt: SortableEvent) => sortAndHandleOnChange(order)>
+</ReactSortable>
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+// NEW API
+<ReactSortable onChange={(list: any[], Sortable: SortableJS, evt: SortableEvent) => handleOnChange(list)}>
+</ReactSortable>
+```
+### options
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+One of the largest changes is the API for the option, group and listening to sortable events.
 
-### `npm run eject`
+#### option
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+#### group
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+#### Event Listeners from Sortable
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+##### start
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+##### end
 
-## Learn More
+##### choose
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+##### unchoose
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#####
+
+## Import
+
+The following types are available for import via `ReactSortable`:
++ SortableJS as a type
++ MultiDrag as a class (plugin)
++ ReactSortable (use as default)
+
+
+
+
+This changes returns 
+
+`onChange` is now `(list: any[], Sortable: SortableJS, evt: SortableEvent) => any` from `(order: string[], Sortable: SortableJS, evt: SortableEvent) => any`. There is no need for you to sort out your own lists anymore.
++ Controlled Components only. To use without managing  much state, use a `FunctionComponent` and utilize the `useState()` hook provided by React.
++ `data-id` is not required for each list item anymore, as the component will do this for you when the `unique` key (not the index) is provided. There is a warning message for this.
++ Add event listeners via `props`, such as `add={(evt) => console.log('I added an item from a different list to this list!)} `
+
+
+## Caveats / Gotchas
++ Add a list and use the `onChange` prop to update your state
++ The default import should be `ReactSortable` by convention. Using `Sortable` will create a *sortable instance* and not be controlled by React.
+
+## Examples
+
+### Controlled Component - Functional
+``` tsx
+
+```
+
+### Controlled Component - Class
+``` tsx
+
+```
+
+## Motivation
+The motivation behind this project is to create a version of React SortableJs that infers types, for safety, intellisense and many other features that intergrate with the Typescript ecosystem.
+
+It turns out that having type safety allowed for many of the features that were lacking in the +1.0.0 version to start working again, such as nested dragging.
+
+The current officially suppported ES2015+ component does not support Typescript.
+
+## Contributing
+
+### How does it work?
+
+In a nutshell, it transposes `props` into `Sortable` options and reverses any DOM changes that `Sortable` creates so react can handle them.
+This way we have a great developer experience with all the great features of `Sortable` with the power of React.# react-sortablejs-typescript
