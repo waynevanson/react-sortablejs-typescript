@@ -17,7 +17,18 @@ const store = { dragging: null as null | ReactSortable }
 export class ReactSortable extends Component<ReactSortableProps> {
   private ref: RefObject<HTMLElement>
 
-  get sortable() {
+  /**
+   * The sortable instance
+   */
+  get sortable(): Sortable | HTMLElement | null {
+    return this.ref.current
+  }
+
+  /**
+   * Removes Sortable from the type
+   *
+   */
+  get sortableHTML(): HTMLElement | null {
     return this.ref.current
   }
 
@@ -73,14 +84,13 @@ export class ReactSortable extends Component<ReactSortableProps> {
 
   // Element is removed from the list into another list
   onRemove(evt: SortableEvent) {
-    // this had stuff in vue that is not handled here currently
-    if (store.dragging === null || store.dragging.sortable === null) return
+    if (store.dragging === null || store.dragging.sortableHTML === null) return
     const { item, oldIndex } = evt
 
-    insertNodeAt(store.dragging.sortable, item, oldIndex!)
+    insertNodeAt(store.dragging.sortableHTML, item, oldIndex!)
 
     const { state, setState } = this.props
-    // add item to the `props.state`
+    // remove item in the `props.state`
     const newState: Item[] = [...state]
     const [oldItem] = newState.splice(evt.oldIndex!, 1)
     setState(newState)
@@ -163,9 +173,9 @@ export interface ReactSortableProps extends Options {
   setState: (newItems: Item[]) => void
   /**
    * If parsing in a component WITHOUT a ref, an error will be thrown.
-   * 
+   *
    * To fix this, use the `forwardRef` component.
-   * 
+   *
    * @example
    * forwardRef<HTMLElement, YOURPROPS>((props, ref) => <button ref={ref} />)
    */
