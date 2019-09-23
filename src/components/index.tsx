@@ -5,10 +5,12 @@ import {
   createElement,
   RefAttributes,
   ForwardRefExoticComponent,
-  CSSProperties
+  CSSProperties,
+  ReactHTML
 } from 'react'
 
-import Sortable, { Options, GroupOptions, SortableEvent, MoveEvent } from 'sortablejs'
+import Sortable, { Options, SortableEvent, MoveEvent } from 'sortablejs'
+import { removeNode, insertNodeAt } from '../util'
 
 const store = { dragging: null as null | ReactSortable }
 
@@ -26,23 +28,31 @@ export class ReactSortable extends Component<ReactSortableProps> {
 
   componentDidMount() {
     if (this.ref.current === null) return
-    const { options, groupOptions } = this.props
-    const newOptions = this.makeOptions(options, groupOptions)
+    const newOptions = this.makeOptions()
     Sortable.create(this.ref.current, newOptions)
   }
 
   render() {
     const { tag, children, style, className } = this.props
-    const ss = { style, className }
+    const classicProps = { style, className }
     const tagCheck = !tag || tag === null ? 'div' : tag
-    return createElement(tagCheck, { ref: this.ref, ...ss }, children)
+    return createElement(tagCheck, { ref: this.ref, ...classicProps }, children)
   }
 
+  /**
+   * Calls the `props.onMove` function
+   * @param moveEvt
+   */
   triggerOnMove(moveEvt: MoveEvent) {
     const onMove = this.props.onMove
     if (onMove) onMove(moveEvt)
   }
 
+  /**
+   * Calls the `props.on[add, start, ...etc] function
+   * @param evt
+   * @param evtName
+   */
   triggerOnElse(evt: SortableEvent, evtName: MethodsExcludingMove) {
     const propEvent = this.props[evtName]
     if (propEvent) propEvent(evt)
@@ -97,8 +107,13 @@ export class ReactSortable extends Component<ReactSortableProps> {
     store.dragging = null
   }
 
-  makeOptions(options: OptionsExcludingGroup = {}, groupOptions?: GroupOptions): Options {
-    const group = groupOptions && { group: groupOptions }
+  /**
+   * Append the props that are options into the options
+   * @param options
+   * @param groupOptions
+   */
+  makeOptions(): Options {
+    const { state, setState, children, tag, style, className, ...options } = this.props
     const removers: MethodsDOM[] = ['onAdd', 'onUpdate', 'onRemove', 'onStart', 'onEnd']
     const norms: Exclude<MethodsExcludingMove, MethodsDOM>[] = [
       'onUnchoose',
@@ -107,17 +122,19 @@ export class ReactSortable extends Component<ReactSortableProps> {
       'onFilter',
       'onSort'
     ]
-
-    const newOptions: OptionsWithMethodsOnly = {}
-    removers.forEach(name => (newOptions[name] = this.deliverCallbacks(name)))
-    norms.forEach(name => (newOptions[name] = this.justEmit(name)))
-    return { ...options, ...newOptions, ...group }
+    const newOptions: Options = options
+    removers.forEach(name => (newOptions[name] = this.callbacksWithOnEvent(name)))
+    norms.forEach(name => (newOptions[name] = this.callbacks(name)))
+    return newOptions
   }
 
   /**
-   * Returns a function that triggers **a DOM change** when a sortable method is triggered
+   * Returns a function that
+   * triggers one of the internal methods
+   * when a sortable method is triggered
+   *
    */
-  deliverCallbacks(evtName: MethodsDOM) {
+  callbacksWithOnEvent(evtName: MethodsDOM) {
     return (evt: SortableEvent) => {
       // calls state change
       this[evtName](evt)
@@ -129,7 +146,7 @@ export class ReactSortable extends Component<ReactSortableProps> {
   /**
    * Returns a function that triggers when a sortable method is triggered
    */
-  justEmit(evtName: Exclude<MethodsExcludingMove, MethodsDOM>) {
+  callbacks(evtName: Exclude<MethodsExcludingMove, MethodsDOM>) {
     return (evt: SortableEvent) => {
       // call the component prop
       this.triggerOnElse(evt, evtName)
@@ -138,49 +155,22 @@ export class ReactSortable extends Component<ReactSortableProps> {
 }
 
 //
-//  UTIL
-//
-
-// append the functions that change the dom
-
-/**
- * Removes the `node` from the DOM
- * @param node
- */
-function removeNode(node: HTMLElement) {
-  if (node.parentElement !== null) node.parentElement.removeChild(node)
-}
-
-/**
- * Uses
- * @param containerNode
- * @param nodeToInsert
- * @param atPosition a number that is not negative
- */
-function insertNodeAt(containerNode: HTMLElement, nodeToInsert: HTMLElement, atPosition: number) {
-  const refNode =
-    atPosition === 0
-      ? containerNode.children[0]
-      : containerNode.children[atPosition - 1].nextSibling
-  containerNode.insertBefore(nodeToInsert, refNode)
-}
-
-//
 // TYPES
 //
 
-export interface ReactSortableProps extends OptionsWithMethodsOnly {
+export interface ReactSortableProps extends Options {
   state: Item[] | undefined
   setState: (newItems: Item[]) => void
   /**
-   * This excludes `options.group`.
-   * Instead, use the `group` prop for this component.
+   * If parsing in a component WITHOUT a ref, an error will be thrown.
+   * 
+   * To fix this, use the `forwardRef` component.
+   * 
+   * @example
+   * forwardRef<HTMLElement, YOURPROPS>((props, ref) => <button ref={ref} />)
    */
-  options?: OptionsExcludingGroup
-  groupOptions?: GroupOptions
-  tag?: ForwardRefExoticComponent<RefAttributes<HTMLElement>>
+  tag?: ForwardRefExoticComponent<RefAttributes<HTMLElement>> | keyof ReactHTML
   plugins?: any[]
-
   style?: CSSProperties
   className?: string
 }
@@ -193,7 +183,10 @@ export interface Item {
 
 export type OptionsExcludingGroup = Omit<Options, 'group'>
 
-export type OptionsWithMethodsOnly = Pick<Options, Methods>
+export type MethodsExcludingMove = Exclude<Methods, 'onMove'>
+/** Method names that change the DOM */
+export type MethodsDOM = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd'
+
 export type Methods =
   | 'onAdd'
   | 'onChoose'
@@ -206,7 +199,3 @@ export type Methods =
   | 'onStart'
   | 'onUnchoose'
   | 'onUpdate'
-
-export type MethodsExcludingMove = Exclude<Methods, 'onMove'>
-/** Method names that change the DOM */
-export type MethodsDOM = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd'

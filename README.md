@@ -20,18 +20,14 @@ If you find any features lacking, create an issue and/or pull request.
 
 There are a number of API changes that are breaking. `react-sortablejs` was lacking many features ofit's sibling intergrations, such as in `vuedraggable`.
 
-### `list`
+### `state`
 
-The `list` prop takes the state you'd like to as a list. This is then changed inside `ReactSortable` to manage the state for you.
+The `state` prop takes the state you'd like to as a list. This is then changed inside `ReactSortable` to manage the state for you.
 
 This is primarily used to return state for you in the new `onChange` prop.
 
 ### `onChange`
 ``` tsx
-// OLD API
-<ReactSortable onChange={(order: string[], Sortable: SortableJS, evt: SortableEvent) => sortAndHandleOnChange(order)>
-</ReactSortable>
-
 // NEW API
 <ReactSortable onChange={(list: any[], Sortable: SortableJS, evt: SortableEvent) => handleOnChange(list)}>
 </ReactSortable>

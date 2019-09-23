@@ -1,11 +1,10 @@
-import React, { FC } from 'react'
+import React, { FC, ReactNode } from 'react'
 import { ReactSortable, Item } from '../components'
 
 import styled from 'styled-components'
 
 export const Nested: FC<NestedProps> = props => {
-  const { children, indent, ...otherProps } = props
-  const { state, setState } = props
+  const { children, indent, state, setState } = props
 
   function handleNestedChange(id: string) {
     return (newChildren: Item[]) => {
@@ -17,23 +16,25 @@ export const Nested: FC<NestedProps> = props => {
     }
   }
 
+  const marginLeft = indent && state.length > 0 ? '25px' : '0px'
   // how toget nested to drag a nest properly?
   return (
     <Row>
       <ReactSortable
         style={{
+          marginLeft,
           display: 'flex',
-          flexDirection: 'column',
-          marginLeft: indent && state.length > 0 ? '25px' : '0px'
+          flexDirection: 'column'
         }}
-        {...otherProps}
-        groupOptions={{ name: 'shared' }}
-        options={{ animation: 200 }}
+        animation={200}
+        group="yes"
+        state={state}
+        setState={setState}
       >
         {state.length > 0 ? (
           state.map(item => (
             <Column key={item.id}>
-              <Row>{item.name}</Row>
+              {children ? children(item) : <Row>{item.name}</Row>}
               <Nested indent state={item.children || []} setState={handleNestedChange(item.id)} />
             </Column>
           ))
@@ -56,13 +57,8 @@ const Row = styled.div`
 `
 
 interface NestedProps {
+  children?: (item: Item) => ReactNode
   state: Item[]
   setState: (newState: Item[]) => void
   indent?: boolean
-}
-
-const S: FC = props => {
-  return <ReactSortable
-    onAdd
-  ></ReactSortable>
 }
