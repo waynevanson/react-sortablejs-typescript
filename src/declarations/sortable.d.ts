@@ -2,9 +2,6 @@ import 'sortablejs'
 import { SortableEvent, MoveEvent, SortablePlugin, SortableEvent } from 'sortablejs'
 
 declare module 'sortablejs' {
-  declare class MultiDrag extends SortablePlugin {}
-  declare class Swap extends SortablePlugin {}
-  declare class AutoScroll extends SortablePlugin {}
   export interface Options {
     /**
      * Only delay if user is using touch
