@@ -11,11 +11,11 @@ import {
 
 import Sortable, { Options, SortableEvent, MoveEvent } from 'sortablejs'
 
-import { removeNode, insertNodeAt } from '../util'
+import { removeNode, insertNodeAt } from '../../util'
 
-const store = { dragging: null as null | ReactSortable }
+const store = { dragging: null as null | ReactSortable<any> }
 
-export class ReactSortable extends Component<ReactSortableProps> {
+export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   private ref: RefObject<HTMLElement>
   /**
    * The sortable instance
@@ -31,7 +31,7 @@ export class ReactSortable extends Component<ReactSortableProps> {
     return this.ref.current
   }
 
-  constructor(props: ReactSortableProps) {
+  constructor(props: ReactSortableProps<T>) {
     super(props)
     this.ref = createRef<HTMLElement>()
   }
@@ -75,7 +75,7 @@ export class ReactSortable extends Component<ReactSortableProps> {
 
     const { state, setState } = this.props
     // add item to the `props.state`
-    const newState: Item[] = [...state]
+    const newState: T[] = [...state]
     const newItem = store.dragging!.props.state![evt.oldIndex!]
     newState.splice(evt.newIndex!, 0, newItem)
     setState(newState)
@@ -90,7 +90,7 @@ export class ReactSortable extends Component<ReactSortableProps> {
 
     const { state, setState } = this.props
     // remove item in the `props.state`
-    const newState: Item[] = [...state]
+    const newState: T[] = [...state]
     const [oldItem] = newState.splice(evt.oldIndex!, 1)
     setState(newState)
   }
@@ -103,7 +103,7 @@ export class ReactSortable extends Component<ReactSortableProps> {
 
     const { state, setState } = this.props
     // add item to the `props.state`
-    const newState: Item[] = [...state]
+    const newState: T[] = [...state]
     const [oldItem] = newState.splice(evt.oldIndex!, 1)
     newState.splice(evt.newIndex!, 0, oldItem)
     setState(newState)
@@ -166,9 +166,9 @@ export class ReactSortable extends Component<ReactSortableProps> {
 // TYPES
 //
 
-export interface ReactSortableProps extends Options {
-  state: Item[] | undefined
-  setState: (newItems: Item[]) => void
+export interface ReactSortableProps<T> extends Options {
+  state: T[] | undefined
+  setState: (newItems: T[]) => void
   /**
    * If parsing in a component WITHOUT a ref, an error will be thrown.
    *
@@ -177,11 +177,15 @@ export interface ReactSortableProps extends Options {
    * @example
    * forwardRef<HTMLElement, YOURPROPS>((props, ref) => <button ref={ref} />)
    */
-  tag?: ForwardRefExoticComponent<RefAttributes<HTMLElement>> | keyof ReactHTML
+  tag?: ForwardRefExoticComponent<RefAttributes<any>> | keyof ReactHTML
   style?: CSSProperties
   className?: string
 }
 
+/**
+ * This is the recommended list item type.
+ * implement or extend this when creating your own.
+ */
 export interface Item {
   id: string
   children?: Item[]

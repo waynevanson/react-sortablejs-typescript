@@ -5,3 +5,4 @@ declare type Config = {
 export declare function register(config?: Config): void;
 export declare function unregister(): void;
 export {};
+//# sourceMappingURL=serviceWorker.d.ts.map

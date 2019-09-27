@@ -1,4 +1,4 @@
-import { createElement, createRef, Component } from 'react';
+import React, { createElement, createRef, Component } from 'react';
 import Sortable from 'sortablejs';
 
 /*! *****************************************************************************
@@ -246,4 +246,22 @@ var ReactSortable = /** @class */ (function (_super) {
     return ReactSortable;
 }(Component));
 
-export { ReactSortable };
+function ReactSortableNested(props) {
+    var children = props.children, state = props.state, setState = props.setState, options = __rest(props, ["children", "state", "setState"]);
+    function handleNestedChange(id) {
+        return function (newChildren) {
+            var newState = __spread(state);
+            var index = newState.findIndex(function (i) { return i.id === id; });
+            var newItem = __assign(__assign({}, newState[index]), { children: newChildren });
+            newState.splice(index, 1, newItem);
+            setState(newState);
+        };
+    }
+    return (React.createElement(ReactSortable, __assign({}, options, { state: state, setState: setState }), state.map(function (item) {
+        return children(item, function () { return (React.createElement(ReactSortableNested, __assign({}, options, { children: children, 
+            //@ts-ignore
+            state: item.children || [], setState: handleNestedChange(item.id) }))); });
+    })));
+}
+
+export { ReactSortable, ReactSortableNested };

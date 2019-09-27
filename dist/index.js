@@ -4,7 +4,8 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var react = require('react');
+var React = require('react');
+var React__default = _interopDefault(React);
 var Sortable = _interopDefault(require('sortablejs'));
 
 /*! *****************************************************************************
@@ -109,7 +110,7 @@ var ReactSortable = /** @class */ (function (_super) {
     __extends(ReactSortable, _super);
     function ReactSortable(props) {
         var _this = _super.call(this, props) || this;
-        _this.ref = react.createRef();
+        _this.ref = React.createRef();
         return _this;
     }
     Object.defineProperty(ReactSortable.prototype, "sortable", {
@@ -142,7 +143,7 @@ var ReactSortable = /** @class */ (function (_super) {
         var _a = this.props, tag = _a.tag, children = _a.children, style = _a.style, className = _a.className;
         var classicProps = { style: style, className: className };
         var tagCheck = !tag || tag === null ? 'div' : tag;
-        return react.createElement(tagCheck, __assign({ ref: this.ref }, classicProps), children);
+        return React.createElement(tagCheck, __assign({ ref: this.ref }, classicProps), children);
     };
     /**
      * Calls the `props.onMove` function
@@ -250,6 +251,25 @@ var ReactSortable = /** @class */ (function (_super) {
         };
     };
     return ReactSortable;
-}(react.Component));
+}(React.Component));
+
+function ReactSortableNested(props) {
+    var children = props.children, state = props.state, setState = props.setState, options = __rest(props, ["children", "state", "setState"]);
+    function handleNestedChange(id) {
+        return function (newChildren) {
+            var newState = __spread(state);
+            var index = newState.findIndex(function (i) { return i.id === id; });
+            var newItem = __assign(__assign({}, newState[index]), { children: newChildren });
+            newState.splice(index, 1, newItem);
+            setState(newState);
+        };
+    }
+    return (React__default.createElement(ReactSortable, __assign({}, options, { state: state, setState: setState }), state.map(function (item) {
+        return children(item, function () { return (React__default.createElement(ReactSortableNested, __assign({}, options, { children: children, 
+            //@ts-ignore
+            state: item.children || [], setState: handleNestedChange(item.id) }))); });
+    })));
+}
 
 exports.ReactSortable = ReactSortable;
+exports.ReactSortableNested = ReactSortableNested;

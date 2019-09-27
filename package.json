@@ -13,9 +13,11 @@
     "react-dom": "^16.9.0"
   },
   "dependencies": {
+    "@reach/router": "^1.2.1",
     "sortablejs": "^1.10.0"
   },
   "devDependencies": {
+    "@types/reach__router": "^1.2.5",
     "@testing-library/jest-dom": "^4.1.0",
     "@testing-library/react": "^9.1.4",
     "@types/jest": "24.0.18",
@@ -39,7 +41,7 @@
     "push": "yarn build && yarn publish",
     "build": "rollup -c",
     "start": "react-scripts start",
-    "website": "react-scripts build",
+    "web": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

@@ -2,7 +2,7 @@ import typescript from 'rollup-plugin-typescript2'
 import pkg from './package.json'
 
 const options =  {
-  input: 'src/components/index.tsx',
+  input: 'src/components/react-sortable/index.ts',
   output: [
     {
       file: pkg.main,
