@@ -9,14 +9,14 @@ import {
   ReactHTML
 } from 'react'
 
-import Sortable, { Options, SortableEvent, MoveEvent, Swap, AutoScroll } from 'sortablejs'
+import Sortable, { Options, SortableEvent, MoveEvent } from 'sortablejs'
+
 import { removeNode, insertNodeAt } from '../util'
 
 const store = { dragging: null as null | ReactSortable }
 
 export class ReactSortable extends Component<ReactSortableProps> {
   private ref: RefObject<HTMLElement>
-
   /**
    * The sortable instance
    */
@@ -141,7 +141,6 @@ export class ReactSortable extends Component<ReactSortableProps> {
    * Returns a function that
    * triggers one of the internal methods
    * when a sortable method is triggered
-   *
    */
   callbacksWithOnEvent(evtName: MethodsDOM) {
     return (evt: SortableEvent) => {

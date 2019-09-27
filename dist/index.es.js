@@ -41,139 +41,41 @@ var __assign = function() {
     return __assign.apply(this, arguments);
 };
 
-function __spreadArrays() {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
+function __rest(s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
 }
 
-var store = { dragging: null };
-var ReactSortable = /** @class */ (function (_super) {
-    __extends(ReactSortable, _super);
-    function ReactSortable(props) {
-        var _this = _super.call(this, props) || this;
-        _this.ref = createRef();
-        return _this;
+function __read(o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
     }
-    Object.defineProperty(ReactSortable.prototype, "sortable", {
-        get: function () {
-            return this.ref.current;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    ReactSortable.prototype.componentDidMount = function () {
-        if (this.ref.current === null)
-            return;
-        var _a = this.props, options = _a.options, groupOptions = _a.groupOptions;
-        var newOptions = this.makeOptions(options, groupOptions);
-        Sortable.create(this.ref.current, newOptions);
-    };
-    ReactSortable.prototype.render = function () {
-        var _a = this.props, tag = _a.tag, children = _a.children;
-        var tagCheck = !tag || tag === null ? 'div' : tag;
-        return createElement(tagCheck, { ref: this.ref }, children);
-    };
-    ReactSortable.prototype.triggerOnMove = function (moveEvt) {
-        var onMove = this.props.onMove;
-        if (onMove)
-            onMove(moveEvt);
-    };
-    ReactSortable.prototype.triggerOnElse = function (evt, evtName) {
-        var propEvent = this.props[evtName];
-        if (propEvent)
-            propEvent(evt);
-    };
-    // Element is dropped into the list from another list
-    ReactSortable.prototype.onAdd = function (evt) {
-        // remove from this list,
-        removeNode(evt.item);
-        var _a = this.props, state = _a.state, setState = _a.setState;
-        // add item to the `props.state`
-        var newState = __spreadArrays(state);
-        var newItem = store.dragging.props.state[evt.oldIndex];
-        newState.splice(evt.newIndex, 0, newItem);
-        setState(newState);
-    };
-    // Element is removed from the list into another list
-    ReactSortable.prototype.onRemove = function (evt) {
-        // this had stuff in vue that is not handled here currently
-        if (store.dragging === null || store.dragging.sortable === null)
-            return;
-        var item = evt.item, oldIndex = evt.oldIndex;
-        insertNodeAt(store.dragging.sortable, item, oldIndex);
-        var _a = this.props, state = _a.state, setState = _a.setState;
-        // add item to the `props.state`
-        var newState = __spreadArrays(state);
-        var oldItem = newState.splice(evt.oldIndex, 1)[0];
-        setState(newState);
-    };
-    // Changed sorting within list
-    // basically the add and remove for actions in the same list
-    ReactSortable.prototype.onUpdate = function (evt) {
-        removeNode(evt.item);
-        insertNodeAt(evt.from, evt.item, evt.oldIndex);
-        var _a = this.props, state = _a.state, setState = _a.setState;
-        // add item to the `props.state`
-        var newState = __spreadArrays(state);
-        var oldItem = newState.splice(evt.oldIndex, 1)[0];
-        newState.splice(evt.newIndex, 0, oldItem);
-        setState(newState);
-    };
-    ReactSortable.prototype.onStart = function (evt) {
-        store.dragging = this;
-    };
-    ReactSortable.prototype.onEnd = function (evt) {
-        store.dragging = null;
-    };
-    ReactSortable.prototype.makeOptions = function (options, groupOptions) {
-        var _this = this;
-        if (options === void 0) { options = {}; }
-        var group = groupOptions && { group: groupOptions };
-        var removers = ['onAdd', 'onUpdate', 'onRemove', 'onStart', 'onEnd'];
-        var norms = [
-            'onUnchoose',
-            'onChoose',
-            'onClone',
-            'onFilter',
-            'onSort'
-        ];
-        var newOptions = {};
-        removers.forEach(function (name) { return (newOptions[name] = _this.deliverCallbacks(name)); });
-        norms.forEach(function (name) { return (newOptions[name] = _this.justEmit(name)); });
-        return __assign(__assign(__assign({}, options), newOptions), group);
-    };
-    /**
-     * Returns a function that triggers **a DOM change** when a sortable method is triggered
-     */
-    ReactSortable.prototype.deliverCallbacks = function (evtName) {
-        var _this = this;
-        return function (evt) {
-            // calls state change
-            _this[evtName](evt);
-            // call the component prop
-            _this.triggerOnElse(evt, evtName);
-        };
-    };
-    /**
-     * Returns a function that triggers when a sortable method is triggered
-     */
-    ReactSortable.prototype.justEmit = function (evtName) {
-        var _this = this;
-        return function (evt) {
-            // call the component prop
-            _this.triggerOnElse(evt, evtName);
-        };
-    };
-    return ReactSortable;
-}(Component));
-//
-// THESE ARE THE ONLY 3 THAT DO
-// DOM CHANGING OPERATIONS
-//
-// append the functions that change the dom
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+}
+
+function __spread() {
+    for (var ar = [], i = 0; i < arguments.length; i++)
+        ar = ar.concat(__read(arguments[i]));
+    return ar;
+}
+
 /**
  * Removes the `node` from the DOM
  * @param node
@@ -194,5 +96,154 @@ function insertNodeAt(containerNode, nodeToInsert, atPosition) {
         : containerNode.children[atPosition - 1].nextSibling;
     containerNode.insertBefore(nodeToInsert, refNode);
 }
+//
+
+var store = { dragging: null };
+var ReactSortable = /** @class */ (function (_super) {
+    __extends(ReactSortable, _super);
+    function ReactSortable(props) {
+        var _this = _super.call(this, props) || this;
+        _this.ref = createRef();
+        return _this;
+    }
+    Object.defineProperty(ReactSortable.prototype, "sortable", {
+        /**
+         * The sortable instance
+         */
+        get: function () {
+            return this.ref.current;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ReactSortable.prototype, "sortableHTML", {
+        /**
+         * Removes Sortable from the type
+         */
+        get: function () {
+            return this.ref.current;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ReactSortable.prototype.componentDidMount = function () {
+        if (this.ref.current === null)
+            return;
+        var newOptions = this.makeOptions();
+        Sortable.create(this.ref.current, newOptions);
+    };
+    ReactSortable.prototype.render = function () {
+        var _a = this.props, tag = _a.tag, children = _a.children, style = _a.style, className = _a.className;
+        var classicProps = { style: style, className: className };
+        var tagCheck = !tag || tag === null ? 'div' : tag;
+        return createElement(tagCheck, __assign({ ref: this.ref }, classicProps), children);
+    };
+    /**
+     * Calls the `props.onMove` function
+     * @param moveEvt
+     */
+    ReactSortable.prototype.triggerOnMove = function (moveEvt) {
+        var onMove = this.props.onMove;
+        if (onMove)
+            onMove(moveEvt);
+    };
+    /**
+     * Calls the `props.on[add, start, ...etc] function
+     * @param evt
+     * @param evtName
+     */
+    ReactSortable.prototype.triggerOnElse = function (evt, evtName) {
+        var propEvent = this.props[evtName];
+        if (propEvent)
+            propEvent(evt);
+    };
+    // Element is dropped into the list from another list
+    ReactSortable.prototype.onAdd = function (evt) {
+        // remove from this list,
+        removeNode(evt.item);
+        var _a = this.props, state = _a.state, setState = _a.setState;
+        // add item to the `props.state`
+        var newState = __spread(state);
+        var newItem = store.dragging.props.state[evt.oldIndex];
+        newState.splice(evt.newIndex, 0, newItem);
+        setState(newState);
+    };
+    // Element is removed from the list into another list
+    ReactSortable.prototype.onRemove = function (evt) {
+        if (store.dragging === null || store.dragging.sortableHTML === null)
+            return;
+        var item = evt.item, oldIndex = evt.oldIndex;
+        insertNodeAt(store.dragging.sortableHTML, item, oldIndex);
+        var _a = this.props, state = _a.state, setState = _a.setState;
+        // remove item in the `props.state`
+        var newState = __spread(state);
+        var _b = __read(newState.splice(evt.oldIndex, 1), 1), oldItem = _b[0];
+        setState(newState);
+    };
+    // Changed sorting within list
+    // basically the add and remove for actions in the same list
+    ReactSortable.prototype.onUpdate = function (evt) {
+        removeNode(evt.item);
+        insertNodeAt(evt.from, evt.item, evt.oldIndex);
+        var _a = this.props, state = _a.state, setState = _a.setState;
+        // add item to the `props.state`
+        var newState = __spread(state);
+        var _b = __read(newState.splice(evt.oldIndex, 1), 1), oldItem = _b[0];
+        newState.splice(evt.newIndex, 0, oldItem);
+        setState(newState);
+    };
+    ReactSortable.prototype.onStart = function (evt) {
+        store.dragging = this;
+    };
+    ReactSortable.prototype.onEnd = function (evt) {
+        store.dragging = null;
+    };
+    /**
+     * Append the props that are options into the options
+     * @param options
+     * @param groupOptions
+     */
+    ReactSortable.prototype.makeOptions = function () {
+        var _this = this;
+        var _a = this.props, state = _a.state, setState = _a.setState, children = _a.children, tag = _a.tag, style = _a.style, className = _a.className, options = __rest(_a, ["state", "setState", "children", "tag", "style", "className"]);
+        var removers = ['onAdd', 'onUpdate', 'onRemove', 'onStart', 'onEnd'];
+        var norms = [
+            'onUnchoose',
+            'onChoose',
+            'onClone',
+            'onFilter',
+            'onSort'
+        ];
+        var newOptions = options;
+        removers.forEach(function (name) { return (newOptions[name] = _this.callbacksWithOnEvent(name)); });
+        norms.forEach(function (name) { return (newOptions[name] = _this.callbacks(name)); });
+        return newOptions;
+    };
+    /**
+     * Returns a function that
+     * triggers one of the internal methods
+     * when a sortable method is triggered
+     */
+    ReactSortable.prototype.callbacksWithOnEvent = function (evtName) {
+        var _this = this;
+        return function (evt) {
+            // calls state change
+            _this[evtName](evt);
+            // call the component prop
+            _this.triggerOnElse(evt, evtName);
+        };
+    };
+    /**
+     * Returns a function that triggers when a sortable method is triggered
+     */
+    ReactSortable.prototype.callbacks = function (evtName) {
+        var _this = this;
+        return function (evt) {
+            // call the component prop
+            _this.triggerOnElse(evt, evtName);
+        };
+    };
+    return ReactSortable;
+}(Component));
 
 export { ReactSortable };

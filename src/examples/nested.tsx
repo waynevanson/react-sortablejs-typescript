@@ -17,7 +17,6 @@ export const Nested: FC<NestedProps> = props => {
   }
 
   const marginLeft = indent && state.length > 0 ? '25px' : '0px'
-  // how toget nested to drag a nest properly?
   return (
     <Row>
       <ReactSortable
