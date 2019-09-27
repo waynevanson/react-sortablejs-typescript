@@ -26,10 +26,12 @@ export const Nested: FC<NestedProps> = props => {
           display: 'flex',
           flexDirection: 'column'
         }}
+
         animation={200}
         group="yes"
         state={state}
         setState={setState}
+        fallbackOnBody
       >
         {state.length > 0 ? (
           state.map(item => (

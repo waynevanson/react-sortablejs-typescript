@@ -9,7 +9,7 @@ import {
   ReactHTML
 } from 'react'
 
-import Sortable, { Options, SortableEvent, MoveEvent } from 'sortablejs'
+import Sortable, { Options, SortableEvent, MoveEvent, Swap, AutoScroll } from 'sortablejs'
 import { removeNode, insertNodeAt } from '../util'
 
 const store = { dragging: null as null | ReactSortable }
@@ -26,7 +26,6 @@ export class ReactSortable extends Component<ReactSortableProps> {
 
   /**
    * Removes Sortable from the type
-   *
    */
   get sortableHTML(): HTMLElement | null {
     return this.ref.current
@@ -180,7 +179,6 @@ export interface ReactSortableProps extends Options {
    * forwardRef<HTMLElement, YOURPROPS>((props, ref) => <button ref={ref} />)
    */
   tag?: ForwardRefExoticComponent<RefAttributes<HTMLElement>> | keyof ReactHTML
-  plugins?: any[]
   style?: CSSProperties
   className?: string
 }
