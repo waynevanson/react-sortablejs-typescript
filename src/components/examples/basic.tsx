@@ -53,7 +53,7 @@ export const NestedExample: FC = props => {
       children: [{ id: '8', name: 'King' }, { id: '9', name: 'Queen' }]
     }
   ])
-
+  console.log({state})
   return (
     <ReactSortableNested
       tag={List}

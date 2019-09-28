@@ -1,4 +1,4 @@
-import React, { FC, Component, ReactElement, ReactComponentElement } from 'react'
+import React, { FC } from 'react'
 import * as Comps from './components'
 import styled from 'styled-components'
 import './App.css'
@@ -25,7 +25,7 @@ interface ExampleProps {
 }
 
 const Example: FC<ExampleProps> = props => {
-  const { component: Component, title, number } = props
+  const { component: Component, title } = props
   return (
     <Container>
       <p>
@@ -59,6 +59,6 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   text-align: center;
-  margin: .5rem 1rem;
+  margin: 0.5rem 1rem;
   padding: 1rem;
 `

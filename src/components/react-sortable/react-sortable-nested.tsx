@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, cloneElement } from 'react'
+import React, { FC, ReactElement, cloneElement, useState } from 'react'
 import { ReactSortable, Item, ReactSortableProps } from './react-sortable'
 
 import { GroupOptions } from 'sortablejs'
@@ -6,21 +6,16 @@ import { GroupOptions } from 'sortablejs'
 export function ReactSortableNested<T extends Item>(props: ReactSortableNestedProps<T>) {
   const { children, state, setState, ...options } = props
 
-  function handleNestedChange(id: string) {
-    return (newChildren: T[]) => {
-      const newState = [...state]
-      const index = newState.findIndex(i => i.id === id)
-      const newItem: T = {
-        ...newState[index],
-        children: newChildren
-      }
-      newState.splice(index, 1, newItem)
-      setState(newState)
-    }
-  }
-
+  const [handleNestedChange, ...hook] = useItemChildren({ state })
+// I think i need to use the classic recursion method for this. 
+// nested state change just aint gonna cut it
+  // error handling for bad renders
+  if (!state) return null
   return (
-    <ReactSortable {...options} state={state} setState={setState}>
+    // parse id and the children
+
+    // component puts child in it
+    <ReactSortable {...options} stateFromAChild={hook} state={state} setState={setState}>
       {state.map(item => {
         const rendered = children(item, () => (
           <ReactSortableNested
@@ -38,10 +33,34 @@ export function ReactSortableNested<T extends Item>(props: ReactSortableNestedPr
   )
 }
 
-export interface ReactSortableNestedProps<T> extends ReactSortableProps<T> {
+interface UseMeParams<T extends Item> {
+  state: T[]
+}
+
+export type ItemChildrenState<T extends Item> = [string, T[]] | null
+export type UseItemChildren<T extends Item> = [
+  (id: string) => (newChildren: T[]) => void,
+  ItemChildrenState<T>,
+  (newItemChildren: ItemChildrenState<T>) => void
+]
+export type UseItemChildrenHooks<T extends Item> = [
+  ItemChildrenState<T>,
+  (newItemChildren: ItemChildrenState<T>) => void
+]
+
+function useItemChildren<T extends Item>(params: UseMeParams<T>): UseItemChildren<T> {
+  const { state } = params
+  const [itemChildren, setItemChildren] = useState<ItemChildrenState<T>>(null)
+  const handleNestedChange = (id: string) => (newChildren: T[]) => {
+    setItemChildren([id, newChildren])
+  }
+
+  return [handleNestedChange, itemChildren, setItemChildren]
+}
+
+export interface ReactSortableNestedProps<T extends Item> extends ReactSortableProps<T> {
   // nested sortable
   children: (item: T, Nested: FC) => ReactElement
-
   // react sortable
   state: T[]
 

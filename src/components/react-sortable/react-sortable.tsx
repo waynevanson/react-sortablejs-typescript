@@ -12,25 +12,13 @@ import {
 import Sortable, { Options, SortableEvent, MoveEvent } from 'sortablejs'
 
 import { removeNode, insertNodeAt } from '../../util'
+import { UseItemChildrenHooks, ItemChildrenState } from './react-sortable-nested'
 
 const store = { dragging: null as null | ReactSortable<any> }
 
-export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
+export class ReactSortable<T extends Item> extends Component<ReactSortableProps<T>> {
   private ref: RefObject<HTMLElement>
-  /**
-   * The sortable instance
-   */
-  get sortable(): Sortable | HTMLElement | null {
-    return this.ref.current
-  }
-
-  /**
-   * Removes Sortable from the type
-   */
-  get sortableHTML(): HTMLElement | null {
-    return this.ref.current
-  }
-
+  childState: T[] | null = null
   constructor(props: ReactSortableProps<T>) {
     super(props)
     this.ref = createRef<HTMLElement>()
@@ -42,6 +30,8 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     Sortable.create(this.ref.current, newOptions)
   }
 
+  // how to put all actions in a place?
+  //
   render() {
     const { tag, children, style, className } = this.props
     const classicProps = { style, className }
@@ -73,9 +63,21 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     // remove from this list,
     removeNode(evt.item)
 
-    const { state, setState } = this.props
+    const { state, setState, stateFromAChild } = this.props
     // add item to the `props.state`
     const newState: T[] = [...state]
+    if (stateFromAChild && stateFromAChild[0] !== null) {
+      const newId = stateFromAChild[0][0]
+      const newCh = stateFromAChild[0][1]
+
+      const index = newState.findIndex(i => i.id === newId)
+      const newItem: T = {
+        ...newState[index],
+        children: newCh
+      }
+      newState.splice(index, 1, newItem)
+      stateFromAChild[1](null)
+    }
     const newItem = store.dragging!.props.state![evt.oldIndex!]
     newState.splice(evt.newIndex!, 0, newItem)
     setState(newState)
@@ -83,15 +85,12 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
 
   // Element is removed from the list into another list
   onRemove(evt: SortableEvent) {
-    if (store.dragging === null || store.dragging.sortableHTML === null) return
-    const { item, oldIndex } = evt
-
-    insertNodeAt(store.dragging.sortableHTML, item, oldIndex!)
-
+    const { item, from, oldIndex } = evt
+    insertNodeAt(from, item, oldIndex!)
     const { state, setState } = this.props
-    // remove item in the `props.state`
+    // remove item in the `props.state`fromComponent
+
     const newState: T[] = [...state]
-    const [oldItem] = newState.splice(evt.oldIndex!, 1)
     setState(newState)
   }
 
@@ -106,6 +105,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     const newState: T[] = [...state]
     const [oldItem] = newState.splice(evt.oldIndex!, 1)
     newState.splice(evt.newIndex!, 0, oldItem)
+    // works because it's only one state change
     setState(newState)
   }
 
@@ -166,7 +166,8 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
 // TYPES
 //
 
-export interface ReactSortableProps<T> extends Options {
+export interface ReactSortableProps<T extends Item> extends Options {
+  stateFromAChild?: UseItemChildrenHooks<T>
   state: T[] | undefined
   setState: (newItems: T[]) => void
   /**
