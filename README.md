@@ -91,3 +91,40 @@ we've created a component
 
 In a nutshell, it transposes `props` into `Sortable` options and reverses any DOM changes that `Sortable` creates so react can handle them.
 This way we have a great developer experience with all the great features of `Sortable` with the power of React.# react-sortablejs-typescript
+
+```
+
+```
+
+Hi all,
+
+I'm writing a react component for the third party library, which has some `callback` functions.
+
+Riddle me this:
+
+- Each component I wrap will create an instance of the plugin.
+- I have multiple instances of the component.
+- all the components trigger the callback on the *same render*.
+- The callback on the component changes the state (an array).
+- The callback needs the ***new value*** of the updated state before being triggered
+
+What I expect:
+
+- The first callback fires
+- state changes using `setState`
+- react updates internally so `state` exposes the new value to the component
+- the second callback fires, using the new `state` value in the calculation
+
+What actually happens:
+
+- The first callback fires
+- state changes using `setState`
+- react updates internally so `state` exposes the new value to the component
+- the second callback fires, using the **_old `state`_** value in the calculation
+
+According to the docs, `setState` triggers a new render, which updates the value (this happens).
+
+The Problem is that the updated `state` value is still not being used for the calculation.
+
+When I think about using `useEffect`, that more so triggers side effects. In my scenario, I want a non-react thing triggering react, so this is backwards and doesn't seem to be the solution.
+

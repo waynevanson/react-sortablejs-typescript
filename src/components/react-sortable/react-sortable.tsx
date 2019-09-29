@@ -32,8 +32,6 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     Sortable.create(this.ref.current, newOptions)
   }
 
-  // how to put all actions in a place?
-  //
   render() {
     const { tag, children, style, className } = this.props
     const classicProps = { style, className }

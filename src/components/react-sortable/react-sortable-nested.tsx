@@ -1,7 +1,7 @@
-import React, { FC, ReactElement, cloneElement, useContext } from 'react'
+import React, { FC, ReactElement, cloneElement, useContext, useEffect } from 'react'
 import { ReactSortable, Item, ReactSortableProps, Store } from './react-sortable'
 import { GroupOptions, SortableEvent } from 'sortablejs'
-import { sortableContext } from './hoc-nested'
+import { sortableContext, offState } from './hoc-nested'
 
 export type ActionHandlers = Record<
   'onAdd' | 'onRemove' | 'onUpdate',
@@ -10,32 +10,22 @@ export type ActionHandlers = Record<
 
 /**
  * State is managed for you, so relax!
+ *
+ * I'm trying but I'm a bees dick away
+ *
  * @param props
  */
+// neeed to keep track on the PATH of the item, like old times
 export function ReactSortableNested<T extends Item>(props: ReactSortableNestedProps<T>) {
-  const { children, list, depth: propDepth, onAdd, onRemove, onUpdate, ...options } = props
+  const { children, list, depth: propDepth, ...options } = props
   const depth = propDepth || 0
 
-  const { handleAddToState, handleRemoveFromState, handleUpdateTheState } = useSorting(props, depth)
-  const handlers: ActionHandlers = {
-    onAdd: (evt: SortableEvent, store: Store) => {
-      handleAddToState(evt, store)
-      if (onAdd) onAdd(evt, store)
-    },
-    onRemove: (evt: SortableEvent, store: Store) => {
-      handleRemoveFromState(evt)
-      if (onRemove) onRemove(evt, store)
-    },
-    onUpdate: (evt: SortableEvent, store: Store) => {
-      handleUpdateTheState(evt, store)
-      if (onUpdate) onUpdate(evt, store)
-    }
-  }
-
+  const sorting = useSorting(depth)
+  const handlers = useHandlers(props, sorting)
   if (!list) return null
   return (
     //@ts-ignore
-    <ReactSortable uncontrolled {...handlers} {...options} list={list}>
+    <ReactSortable uncontrolled {...options} {...handlers} list={list}>
       {list.map(item => {
         const Nested: FC = () => (
           <ReactSortableNested
@@ -56,8 +46,37 @@ export function ReactSortableNested<T extends Item>(props: ReactSortableNestedPr
   )
 }
 
-function useSorting<T extends Item>(props: ReactSortableNestedProps<T>, depth: number) {
-  const { rootState, setRootState } = useContext(sortableContext)
+function useHandlers<T extends Item>(
+  props: ReactSortableNestedProps<T>,
+  sorting: UseSorting
+): ActionHandlers {
+  const { handleAddToState, handleRemoveFromState, handleUpdateTheState } = sorting
+
+  const onAdd = (evt: SortableEvent, store: Store) => {
+    handleAddToState(evt, store)
+    if (props.onAdd) props.onAdd(evt, store)
+  }
+
+  const onRemove = (evt: SortableEvent, store: Store) => {
+    handleRemoveFromState(evt)
+    if (props.onRemove) props.onRemove(evt, store)
+  }
+
+  const onUpdate = (evt: SortableEvent, store: Store) => {
+    handleUpdateTheState(evt, store)
+    if (props.onUpdate) props.onUpdate(evt, store)
+  }
+  return { onAdd, onRemove, onUpdate }
+}
+
+interface UseSorting {
+  handleAddToState: (evt: SortableEvent, store: Store) => void
+  handleRemoveFromState: (evt: SortableEvent) => void
+  handleUpdateTheState: (evt: SortableEvent, store: Store) => void
+}
+
+function useSorting<T extends Item>(depth: number) {
+  const { rootState,setRootState } = useContext(sortableContext)
   const constants = { state: rootState, depth, currentDepth: 0 }
 
   function handleAddToState(evt: SortableEvent, store: Store) {
@@ -70,6 +89,7 @@ function useSorting<T extends Item>(props: ReactSortableNestedProps<T>, depth: n
       index: evt.newIndex!
     })
     console.log('add', { old: rootState, new: newState })
+    offState.current = newState
     if (setRootState) setRootState(newState)
   }
 
@@ -79,6 +99,7 @@ function useSorting<T extends Item>(props: ReactSortableNestedProps<T>, depth: n
       index: evt.oldIndex!
     })
     console.log('remove', { old: rootState, new: newState })
+    offState.current = newState
     if (setRootState) setRootState(newState)
   }
 
@@ -101,6 +122,8 @@ function useSorting<T extends Item>(props: ReactSortableNestedProps<T>, depth: n
     })
 
     console.log('update', { old: rootState, new: postAdd })
+    offState.current = postAdd
+
     if (setRootState) setRootState(postAdd)
   }
   return { handleAddToState, handleRemoveFromState, handleUpdateTheState }

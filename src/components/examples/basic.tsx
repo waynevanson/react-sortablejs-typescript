@@ -52,14 +52,12 @@ export const NestedExample: FC = props => {
       children: [{ id: '8', name: 'King' }, { id: '9', name: 'Queen' }]
     }
   ])
-  console.log({ state })
   return (
     <SortableHOCnested list={state} setList={setState} group="groupname" swapThreshold={0.65}>
       {(item, Nested) => (
         <List>
           <Node>
             {item.name}
-
             <Nested />
           </Node>
         </List>

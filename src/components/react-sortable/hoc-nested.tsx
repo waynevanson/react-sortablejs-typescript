@@ -2,8 +2,14 @@ import React, { createContext, ReactElement, ReactNode } from 'react'
 import { ReactSortableNestedProps, ReactSortableNested } from './react-sortable-nested'
 import { Item } from '.'
 
+export const offState = { current: null as null | Item[] }
+
+// old state
 export function SortableHOCnested<T extends Item>(props: SortableHOCnestedProps<T>) {
   const { list, setList, ...otherProps } = props
+
+  if (offState.current === null) offState.current = list
+
   return (
     <SortableProvider rootState={list} setRootState={setList}>
       <ReactSortableNested list={list} depth={0} {...otherProps} />
