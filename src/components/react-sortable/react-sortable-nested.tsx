@@ -1,70 +1,171 @@
-import React, { FC, ReactElement, cloneElement, useState } from 'react'
-import { ReactSortable, Item, ReactSortableProps } from './react-sortable'
+import React, { FC, ReactElement, cloneElement, useContext } from 'react'
+import { ReactSortable, Item, ReactSortableProps, Store } from './react-sortable'
+import { GroupOptions, SortableEvent } from 'sortablejs'
+import { sortableContext } from './hoc-nested'
 
-import { GroupOptions } from 'sortablejs'
+export type ActionHandlers = Record<
+  'onAdd' | 'onRemove' | 'onUpdate',
+  (evt: SortableEvent, store: Store) => void
+>
 
+/**
+ * State is managed for you, so relax!
+ * @param props
+ */
 export function ReactSortableNested<T extends Item>(props: ReactSortableNestedProps<T>) {
-  const { children, state, setState, ...options } = props
+  const { children, list, depth: propDepth, onAdd, onRemove, onUpdate, ...options } = props
+  const depth = propDepth || 0
 
-  const [handleNestedChange, ...hook] = useItemChildren({ state })
-// I think i need to use the classic recursion method for this. 
-// nested state change just aint gonna cut it
-  // error handling for bad renders
-  if (!state) return null
+  const { handleAddToState, handleRemoveFromState, handleUpdateTheState } = useSorting(props, depth)
+  const handlers: ActionHandlers = {
+    onAdd: (evt: SortableEvent, store: Store) => {
+      handleAddToState(evt, store)
+      if (onAdd) onAdd(evt, store)
+    },
+    onRemove: (evt: SortableEvent, store: Store) => {
+      handleRemoveFromState(evt)
+      if (onRemove) onRemove(evt, store)
+    },
+    onUpdate: (evt: SortableEvent, store: Store) => {
+      handleUpdateTheState(evt, store)
+      if (onUpdate) onUpdate(evt, store)
+    }
+  }
+
+  if (!list) return null
   return (
-    // parse id and the children
-
-    // component puts child in it
-    <ReactSortable {...options} stateFromAChild={hook} state={state} setState={setState}>
-      {state.map(item => {
-        const rendered = children(item, () => (
+    //@ts-ignore
+    <ReactSortable uncontrolled {...handlers} {...options} list={list}>
+      {list.map(item => {
+        const Nested: FC = () => (
           <ReactSortableNested
             {...options}
-            children={children}
             //@ts-ignore
-            state={item.children || ([] as T[])}
-            setState={handleNestedChange(item.id)}
+            children={children}
+            depth={depth + 1}
+            //@ts-ignore
+            list={item.children || ([] as T[])}
           />
-        ))
+        )
+        const rendered = children(item, Nested)
         // needed to add a key to the element
+        // what about a ref?
         return cloneElement(rendered, { key: item.id })
       })}
     </ReactSortable>
   )
 }
 
-interface UseMeParams<T extends Item> {
-  state: T[]
-}
+function useSorting<T extends Item>(props: ReactSortableNestedProps<T>, depth: number) {
+  const { rootState, setRootState } = useContext(sortableContext)
+  const constants = { state: rootState, depth, currentDepth: 0 }
 
-export type ItemChildrenState<T extends Item> = [string, T[]] | null
-export type UseItemChildren<T extends Item> = [
-  (id: string) => (newChildren: T[]) => void,
-  ItemChildrenState<T>,
-  (newItemChildren: ItemChildrenState<T>) => void
-]
-export type UseItemChildrenHooks<T extends Item> = [
-  ItemChildrenState<T>,
-  (newItemChildren: ItemChildrenState<T>) => void
-]
+  function handleAddToState(evt: SortableEvent, store: Store) {
+    if (store.dragging == null) return console.error('bad vlaue in this')
 
-function useItemChildren<T extends Item>(params: UseMeParams<T>): UseItemChildren<T> {
-  const { state } = params
-  const [itemChildren, setItemChildren] = useState<ItemChildrenState<T>>(null)
-  const handleNestedChange = (id: string) => (newChildren: T[]) => {
-    setItemChildren([id, newChildren])
+    const newItem: T = store.dragging.props.list![evt.oldIndex!]
+    const newState = addToState({
+      ...constants,
+      refItem: newItem,
+      index: evt.newIndex!
+    })
+    console.log('add', { old: rootState, new: newState })
+    if (setRootState) setRootState(newState)
   }
 
-  return [handleNestedChange, itemChildren, setItemChildren]
+  function handleRemoveFromState(evt: SortableEvent) {
+    const newState = removeFromState({
+      ...constants,
+      index: evt.oldIndex!
+    })
+    console.log('remove', { old: rootState, new: newState })
+    if (setRootState) setRootState(newState)
+  }
+
+  function handleUpdateTheState(evt: SortableEvent, store: Store) {
+    if (store.dragging === null)
+      return console.error('store return null when updating state in HANDLEUPDATETHESTATE()')
+
+    const newItem: T = store.dragging.props.list![evt.oldIndex!]
+
+    const postRemove = removeFromState({
+      ...constants,
+      index: evt.oldIndex!
+    })
+
+    const postAdd = addToState({
+      ...constants,
+      refItem: newItem,
+      state: postRemove,
+      index: evt.newIndex!
+    })
+
+    console.log('update', { old: rootState, new: postAdd })
+    if (setRootState) setRootState(postAdd)
+  }
+  return { handleAddToState, handleRemoveFromState, handleUpdateTheState }
 }
 
-export interface ReactSortableNestedProps<T extends Item> extends ReactSortableProps<T> {
+export interface ReactSortableNestedProps<T extends Item>
+  extends Omit<ReactSortableProps<T>, 'setList'> {
   // nested sortable
   children: (item: T, Nested: FC) => ReactElement
-  // react sortable
-  state: T[]
+  depth: number
+  list: T[]
 
+  // react sortable
   // options
   group: string | GroupOptions
   swapThreshold: number
+}
+
+interface AddToStateParams<T extends Item> extends RemoveFromStateParams<T> {
+  refItem: T
+}
+
+export function addToState<T extends Item>(params: AddToStateParams<T>): T[] {
+  const { state, refItem, index, depth, currentDepth } = params
+  const newState: T[] = []
+  let currentIndex = 0
+  if (!state) return newState
+  for (const item of state) {
+    const { children: placeholder, ...itemNoKids } = item
+    const children = item.children
+      ? addToState({ ...params, state: item.children, currentDepth: currentDepth + 1 })
+      : []
+    //@ts-ignore
+    const newItem: T = children.length > 0 ? { ...itemNoKids, children } : { ...itemNoKids }
+    if (currentDepth === depth && index === currentIndex) newState.push(refItem, newItem)
+    else newState.push(newItem)
+    currentIndex++
+  }
+  return newState
+}
+
+interface RemoveFromStateParams<T extends Item> {
+  state: T[]
+  index: number
+  depth: number
+  currentDepth: number
+}
+
+export function removeFromState<T extends Item>(params: RemoveFromStateParams<T>): T[] {
+  const { state, index, depth, currentDepth } = params
+  const newState: T[] = []
+  let currentIndex = 0
+
+  if (!state) return newState
+
+  for (const item of [...state]) {
+    const { children: placeholder, ...itemNoKids } = item
+    const children = item.children
+      ? removeFromState({ ...params, state: item.children, currentDepth: currentDepth + 1 })
+      : []
+    //@ts-ignore
+    const newItem: T = children.length > 0 ? { ...itemNoKids, children } : { ...itemNoKids }
+    const matches = currentDepth === depth && index === currentIndex
+    if (!matches) newState.push(newItem)
+    currentIndex++
+  }
+  return newState
 }

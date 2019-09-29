@@ -1,3 +1,7 @@
+import { Component } from 'react'
+
+import { ReactSortableProps } from '../components'
+
 /**
  * Removes the `node` from the DOM
  * @param node
@@ -18,3 +22,31 @@ export function insertNodeAt(parent: HTMLElement, newChild: HTMLElement, positio
 }
 
 //
+
+export function destructurePropsForOptions<T>(
+  props: Component<ReactSortableProps<any>, {}, any>['props']
+) {
+  const {
+    list,
+    setList,
+    children,
+    tag,
+    style,
+    className,
+    uncontrolled,
+    onAdd,
+    onChange,
+    onChoose,
+    onClone,
+    onEnd,
+    onFilter,
+    onRemove,
+    onSort,
+    onStart,
+    onUnchoose,
+    onUpdate,
+    onMove,
+    ...options
+  } = props
+  return options
+}

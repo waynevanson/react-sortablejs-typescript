@@ -1,8 +1,8 @@
 import 'sortablejs'
-import { SortableEvent, MoveEvent, SortablePlugin, SortableEvent } from 'sortablejs'
+import { SortableEvent, MoveEvent, SortablePlugin, SortableEvent, SortableEvent } from 'sortablejs'
 
 declare module 'sortablejs' {
-  export interface Options {
+  export interface Options extends OnSpillOptions, AutoScrollOptions {
     /**
      * Only delay if user is using touch
      */
@@ -67,10 +67,59 @@ declare module 'sortablejs' {
      */
     emptyInsertThreshold?: number
 
-    onMove?: (evt: MoveEvent, originalEvent: Event) => void
+    onMove?: (evt: MoveEvent, originalEvent: Event) => boolean | -1 | 0 | 1
     /**
      * Called when dragging element changes position
      */
     onChange?: (evt: SortableEvent) => void
   }
+}
+
+interface OnSpillOptions {
+  /**
+   * This plugin, when enabled,
+   * will cause the dragged item to be reverted to it's original position if it is *spilled*
+   * (ie. it is dropped outside of a valid Sortable drop target)
+   */
+  revertOnSpill?: boolean
+  /**
+   * This plugin, when enabled,
+   * will cause the dragged item to be removed from the DOM if it is *spilled*
+   * (ie. it is dropped outside of a valid Sortable drop target)
+   */
+  removeOnSpill?: boolean
+  onSpill?: (evt: SortableEvent) => void
+}
+
+interface AutoScrollOptions {
+  /**
+   *  Enable the plugin. Can be `HTMLElement`.
+   */
+  scroll?: boolean | HTMLElement
+  /**
+   * if you have custom scrollbar scrollFn may be used for autoscrolling
+   */
+  scrollFn?: ScrollFn
+  /**
+   * how near the mouse must be to an edge to start scrolling.
+   */
+  scrollSensitivity?: number
+  /**
+   * speed of the scrolling
+   */
+  scrollSpeed?: number
+  /**
+   * apply autoscroll to all parent elements, allowing for easier movement
+   */
+  bubbleScroll?: boolean
+}
+
+interface ScrollFn {
+  (
+    offsetX: number,
+    offsetY: number,
+    originalEvent: Event,
+    touchEvt: SortableEvent,
+    hoverTargetEl: HTMLElement
+  ): 'continue' | void
 }
