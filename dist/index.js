@@ -387,6 +387,13 @@ path, id, d) {
     return rootState;
 }
 
+// it's not rendering some updates correctly.
+// maybe it's not the best thing ever.
+// todo:
+// callback in reactsortable should be of that crazy nature.
+// a callback in the setstate, but I can retrieve the prevstate and the list values
+// todo:
+// a lot of stuff lol
 function ReactSortableNested(props) {
     var list = props.list, setList = props.setList, otherProps = __rest(props, ["list", "setList"]);
     console.log({ list: list });
