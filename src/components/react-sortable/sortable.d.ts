@@ -2,7 +2,14 @@ import 'sortablejs'
 import { SortableEvent, MoveEvent, SortablePlugin, SortableEvent, SortableEvent } from 'sortablejs'
 
 declare module 'sortablejs' {
-  export interface Options extends  OnSpillOptions, AutoScrollOptions {
+  export interface GroupOptions {
+    pull?:
+      | ReadonlyArray<string>
+      | boolean
+      | 'clone'
+      | ((to: Sortable, from: Sortable) => boolean | 'clone' | ReadonlyArray<string>)
+  }
+  export interface Options extends OnSpillOptions, AutoScrollOptions {
     /**
      * Only delay if user is using touch
      */

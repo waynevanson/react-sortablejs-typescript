@@ -2,6 +2,7 @@ import React from 'react'
 import { useState, FC } from 'react'
 import { Item, ReactSortableNested } from '../react-sortable'
 import { makeState, List, NodeLike } from './functions-and-styles'
+import { removeNode } from '../react-sortable/util'
 
 export const NestedExample: FC = props => {
   const [state, setState] = useState<Item[]>([
@@ -12,19 +13,53 @@ export const NestedExample: FC = props => {
       children: [{ id: '8', name: 'King', children: [] }, { id: '9', name: 'Queen', children: [] }]
     }
   ])
+
   return (
     <ReactSortableNested
-      easing="step-end"
+      onAdd={() => console.log('add')}
+      onRemove={() => console.log('remove')}
+      onUpdate={() => console.log('update')}
       animation={200}
       list={state}
       setList={setState}
-      group="groupname"
+      // clone needs to be handled
+      // use this in my react sortable nested component
+      group={{
+        name: 'group',
+        pull: (to, from) => {
+          const togo = to.options.group
+          const toName = typeof togo === 'object' ? togo.name : togo
+          const fromgo = from.options.group
+          const fromName = typeof fromgo === 'object' ? fromgo.name : fromgo
+          const clone = true
+          const pullval = fromName || true
+          return clone && fromName !== toName ? 'clone' : pullval
+        },
+        put: true
+      }}
       swapThreshold={0.5}
+      removeOnSpill
+      // need to add to react sortable component
+      onSpill={evt => {
+        removeNode(evt.item)
+      }}
+      // triggers immediately when function returns
+      onClone={evt => {
+        console.log('cloned')
+      }}
     >
-      {(item, Nested) => (
+      {({ item, Nested, path, index, depth }) => (
         <List>
           <NodeLike>
-            {item.name}
+            <div>
+              <b>{item.name}</b>
+            </div>
+            <div>
+              <code>PATH: {JSON.stringify(path)}, </code>
+              <code>
+                DEPTH: {depth}, INDEX: {index}
+              </code>
+            </div>
             <Nested />
           </NodeLike>
         </List>

@@ -7,13 +7,15 @@ import {
   ForwardRefExoticComponent,
   CSSProperties,
   ReactHTML,
-  Dispatch
+  Dispatch,
+  SetStateAction
 } from 'react'
 
 import Sortable, { Options, SortableEvent } from 'sortablejs'
 
 import { removeNode, insertNodeAt, destructurePropsForOptions } from './util'
 
+// add option to store this in context, instead of here.
 const store: Store = { dragging: null }
 
 /**
@@ -23,6 +25,7 @@ const store: Store = { dragging: null }
 export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   private ref: RefObject<HTMLElement>
   childState: T[] | null = null
+  state = { isClone: false }
   constructor(props: ReactSortableProps<T>) {
     super(props)
     this.ref = createRef<HTMLElement>()
@@ -47,6 +50,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    * @param evt
    * @param evtName
    */
+  // create onSpill
   triggerOnElse(evt: SortableEvent, evtName: SortableMethodKeysWithoutMove) {
     const propEvent = this.props[evtName]
     if (propEvent) propEvent(evt, store)
@@ -54,32 +58,28 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
 
   // Element is dropped into the list from another list
   onAdd(evt: SortableEvent) {
-    const { setList, uncontrolled } = this.props
+    const { list, setList, uncontrolled } = this.props
     // remove from this list,
     removeNode(evt.item)
     if (uncontrolled || !setList) return
     // add item to the `props.state`
-    setList(prevState => {
-      const newState: T[] = [...prevState]
-      const newItem = store.dragging!.props.list![evt.oldIndex!]
-      newState.splice(evt.newIndex!, 0, newItem)
-      return newState
-    })
+    const newState: T[] = [...list]
+    const newItem = store.dragging!.props.list[evt.oldIndex!]
+    newState.splice(evt.newIndex!, 0, newItem)
+    setList(newState)
   }
 
   // Element is removed from the list into another list
   onRemove(evt: SortableEvent) {
     const { item, from, oldIndex } = evt
     insertNodeAt(from, item, oldIndex!)
-    const { setList, uncontrolled } = this.props
+    const { list, setList, uncontrolled } = this.props
     if (uncontrolled || !setList) return
 
     // remove item in the `props.state`fromComponent
-    setList(prevState => {
-      const newState: T[] = [...prevState]
-      newState.splice(oldIndex!, 1)
-      return newState
-    })
+    const newState: T[] = [...list]
+    newState.splice(oldIndex!, 1)
+    setList(newState)
   }
 
   // Changed sorting within list
@@ -88,16 +88,14 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     removeNode(evt.item)
     insertNodeAt(evt.from, evt.item, evt.oldIndex!)
 
-    const { setList, uncontrolled } = this.props
+    const { list, setList, uncontrolled } = this.props
     if (uncontrolled || !setList) return
 
     // remove and add items to the `props.state`
-    setList(prevList => {
-      const newState: T[] = [...prevList]
-      const [oldItem] = newState.splice(evt.oldIndex!, 1)
-      newState.splice(evt.newIndex!, 0, oldItem)
-      return newState
-    })
+    const newState: T[] = [...list]
+    const [oldItem] = newState.splice(evt.oldIndex!, 1)
+    newState.splice(evt.newIndex!, 0, oldItem)
+    setList(newState)
   }
 
   onStart(evt: SortableEvent) {
@@ -106,6 +104,10 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
 
   onEnd(evt: SortableEvent) {
     store.dragging = null
+  }
+
+  onSpill(evt: SortableEvent) {
+    removeNode(evt.item)
   }
 
   /**
@@ -132,6 +134,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     removers.forEach(name => (newOptions[name] = this.callbacksWithOnEvent(name)))
     norms.forEach(name => (newOptions[name] = this.callbacks(name)))
     // todo: add `onMove`. Types are cooked on this one not sure why...
+    // todo: add `onSpill` methods and DOM changes
     return {
       ...newOptions
     }
@@ -144,10 +147,10 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    */
   callbacksWithOnEvent(evtName: SortableMethodKeysReactHandling) {
     return (evt: SortableEvent) => {
-      // calls state change
-      this[evtName](evt)
       // call the component prop
       this.triggerOnElse(evt, evtName)
+      // calls state change
+      this[evtName](evt)
     }
   }
 
@@ -171,8 +174,8 @@ export interface ReactSortableProps<T> extends NewOptions {
    * Does not induce any state changes when DOM is updated
    */
   uncontrolled?: boolean
-  list?: T[]
-  setList?: SetStateCallback<T[]>
+  list: T[]
+  setList?: Dispatch<SetStateAction<T[]>>
   /**
    * If parsing in a component WITHOUT a ref, an error will be thrown.
    *
@@ -195,6 +198,7 @@ export type SetStateCallback<S> = Dispatch<(prevState: S) => S>
 //
 // TYPES FOR METHODS
 //
+
 export type SortableMethodKeys =
   | 'onAdd'
   | 'onChoose'
@@ -218,10 +222,6 @@ interface NewSortableMethodMove {
   onMove?: (evt: SortableEvent, originalEvent: Event, store: Store) => boolean | -1 | 0 | 1 // return false; — for cancel
 }
 
-// remove old methds, add new
-// remove methods
-// ad all but move as partial
-// add ove as partial
 type NewOptions = Omit<Options, SortableMethodKeys> &
   NewSortableMethodsWithoutMove &
   NewSortableMethodMove
@@ -230,3 +230,4 @@ type NewSortableMethodsWithoutMove = Partial<
   Record<SortableMethodKeysWithoutMove, (evt: SortableEvent, store: Store) => void>
 >
 // type NewMoveOptions
+//  todo: add on spill
