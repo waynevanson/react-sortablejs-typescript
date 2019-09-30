@@ -6,7 +6,8 @@ import {
   RefAttributes,
   ForwardRefExoticComponent,
   CSSProperties,
-  ReactHTML
+  ReactHTML,
+  Dispatch,
 } from 'react'
 
 import Sortable, { Options, SortableEvent } from 'sortablejs'
@@ -16,6 +17,7 @@ import { removeNode, insertNodeAt, destructurePropsForOptions } from '../../util
 export interface Store {
   dragging: null | ReactSortable<any>
 }
+
 const store: Store = { dragging: null }
 
 export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
@@ -51,29 +53,32 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
 
   // Element is dropped into the list from another list
   onAdd(evt: SortableEvent) {
-    const { list: state, setList: setState, uncontrolled } = this.props
+    const { setList, uncontrolled } = this.props
     // remove from this list,
     removeNode(evt.item)
-    if (uncontrolled || !setState) return
+    if (uncontrolled || !setList) return
     // add item to the `props.state`
-    const newState: T[] = [...state]
-
-    const newItem = store.dragging!.props.list![evt.oldIndex!]
-    newState.splice(evt.newIndex!, 0, newItem)
-    setState(newState)
+    setList(prevState => {
+      const newState: T[] = [...prevState]
+      const newItem = store.dragging!.props.list![evt.oldIndex!]
+      newState.splice(evt.newIndex!, 0, newItem)
+      return newState
+    })
   }
 
   // Element is removed from the list into another list
   onRemove(evt: SortableEvent) {
     const { item, from, oldIndex } = evt
     insertNodeAt(from, item, oldIndex!)
-    const { list: state, setList: setState, uncontrolled } = this.props
-    if (uncontrolled || !setState) return
+    const { setList, uncontrolled } = this.props
+    if (uncontrolled || !setList) return
 
     // remove item in the `props.state`fromComponent
-
-    const newState: T[] = [...state]
-    setState(newState)
+    setList(prevState => {
+      const newState: T[] = [...prevState]
+      newState.splice(oldIndex!, 1)
+      return newState
+    })
   }
 
   // Changed sorting within list
@@ -82,31 +87,30 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     removeNode(evt.item)
     insertNodeAt(evt.from, evt.item, evt.oldIndex!)
 
-    const { list: state, setList: setState, uncontrolled } = this.props
-    if (uncontrolled || !setState) return
+    const { setList, uncontrolled } = this.props
+    if (uncontrolled || !setList) return
 
-    // add item to the `props.state`
-    const newState: T[] = [...state]
-    const [oldItem] = newState.splice(evt.oldIndex!, 1)
-    newState.splice(evt.newIndex!, 0, oldItem)
-    // works because it's only one state change
-    setState(newState)
+    // remove and add items to the `props.state`
+    setList(prevList => {
+      const newState: T[] = [...prevList]
+      const [oldItem] = newState.splice(evt.oldIndex!, 1)
+      newState.splice(evt.newIndex!, 0, oldItem)
+      return newState
+    })
   }
 
   onStart(evt: SortableEvent) {
     store.dragging = this
   }
+
   onEnd(evt: SortableEvent) {
     store.dragging = null
   }
 
   /**
    * Append the props that are options into the options
-   * @param options
-   * @param groupOptions
    */
   makeOptions(): Options {
-    const options = destructurePropsForOptions(this.props)
     const removers: MethodsDOM[] = ['onAdd', 'onUpdate', 'onRemove', 'onStart', 'onEnd']
     const norms: Exclude<MethodsExcludingMove, MethodsDOM>[] = [
       'onUnchoose',
@@ -116,6 +120,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
       'onSort',
       'onChange'
     ]
+    const options = destructurePropsForOptions(this.props)
     const newOptions: Options = options
     removers.forEach(name => (newOptions[name] = this.callbacksWithOnEvent(name)))
     norms.forEach(name => (newOptions[name] = this.callbacks(name)))
@@ -160,7 +165,7 @@ export interface ReactSortableProps<T> extends NewOptions {
    */
   uncontrolled?: boolean
   list?: T[]
-  setList?: (newItems: T[]) => void
+  setList?: SetStateCallback<T[]>
   /**
    * If parsing in a component WITHOUT a ref, an error will be thrown.
    *
@@ -217,3 +222,4 @@ export interface NewMethodMove {
 // add ove as partial
 export type NewOptions = Omit<Options, Methods> & ss & Partial<NewMethodMove>
 type ss = Partial<Record<MethodsExcludingMove, (evt: SortableEvent, store: Store) => void>>
+export type SetStateCallback<S> = Dispatch<(prevState: S) => S>

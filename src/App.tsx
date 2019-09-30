@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
-import * as Comps from './components'
 import styled from 'styled-components'
 import './App.css'
+import { NestedExample } from './components/examples/nested'
 
 /**
  * This holds the page with our examples
@@ -10,9 +10,10 @@ const App: React.FC = () => {
   return (
     <Wrap>
       <Shrek>
-        {Object.entries(Comps).map(([name, Component], index) => (
+        <NestedExample />
+        {/* {Object.entries(Comps).map(([name, Component], index) => (
           <Example key={index} component={Component} title={name} number={index} />
-        ))}
+        ))} */}
       </Shrek>
     </Wrap>
   )

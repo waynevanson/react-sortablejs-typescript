@@ -1,4 +1,4 @@
-import { addToState, removeFromState } from '../react-sortable-nested'
+import { addToState, removeFromState } from '../sortable-recursive'
 
 const state = [
   { id: '1', name: 'shrek' },

@@ -1,6 +1,6 @@
 import { Component } from 'react'
+import { ReactSortableProps } from '../components/react-sortable'
 
-import { ReactSortableProps } from '../components'
 
 /**
  * Removes the `node` from the DOM

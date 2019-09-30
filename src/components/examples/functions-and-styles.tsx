@@ -10,7 +10,7 @@ export const List = styled.div`
   text-align: left;
 `
 
-export const Node = styled.div`
+export const NodeLike = styled.div`
   padding: 0.4rem;
   border: 1px solid #aaa;
   border-radius: 0.5rem;
