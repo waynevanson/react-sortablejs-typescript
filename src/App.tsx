@@ -10,10 +10,7 @@ const App: React.FC = () => {
   return (
     <Wrap>
       <Shrek>
-        <NestedExample />
-        {/* {Object.entries(Comps).map(([name, Component], index) => (
-          <Example key={index} component={Component} title={name} number={index} />
-        ))} */}
+        <Example component={NestedExample} number={1} title='nested!' />
       </Shrek>
     </Wrap>
   )
@@ -50,6 +47,7 @@ const Shrek = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-width: 400px;
   max-width: 960px;
 `
 

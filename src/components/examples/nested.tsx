@@ -1,11 +1,10 @@
+import React from 'react'
 import { useState, FC } from 'react'
 import { Item, ReactSortableNested } from '../react-sortable'
 import { makeState, List, NodeLike } from './functions-and-styles'
-import React from 'react'
 
 export const NestedExample: FC = props => {
   const [state, setState] = useState<Item[]>(
-    // makeState
     [
       ...makeState(),
       {

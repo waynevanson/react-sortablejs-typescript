@@ -7,19 +7,19 @@ import {
   ForwardRefExoticComponent,
   CSSProperties,
   ReactHTML,
-  Dispatch,
+  Dispatch
 } from 'react'
 
 import Sortable, { Options, SortableEvent } from 'sortablejs'
 
-import { removeNode, insertNodeAt, destructurePropsForOptions } from '../../util'
-
-export interface Store {
-  dragging: null | ReactSortable<any>
-}
+import { removeNode, insertNodeAt, destructurePropsForOptions } from './util'
 
 const store: Store = { dragging: null }
 
+/**
+ * A component for making the first layer of children sortable,
+ * using `SortableJS` to manipulate the DOM.
+ */
 export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   private ref: RefObject<HTMLElement>
   childState: T[] | null = null
@@ -38,6 +38,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     const { tag, children, style, className } = this.props
     const classicProps = { style, className }
     const tagCheck = !tag || tag === null ? 'div' : tag
+    // todo: add data-id to children
     return createElement(tagCheck, { ref: this.ref, ...classicProps }, children)
   }
 
@@ -46,7 +47,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    * @param evt
    * @param evtName
    */
-  triggerOnElse(evt: SortableEvent, evtName: MethodsExcludingMove) {
+  triggerOnElse(evt: SortableEvent, evtName: SortableMethodKeysWithoutMove) {
     const propEvent = this.props[evtName]
     if (propEvent) propEvent(evt, store)
   }
@@ -111,8 +112,14 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    * Append the props that are options into the options
    */
   makeOptions(): Options {
-    const removers: MethodsDOM[] = ['onAdd', 'onUpdate', 'onRemove', 'onStart', 'onEnd']
-    const norms: Exclude<MethodsExcludingMove, MethodsDOM>[] = [
+    const removers: SortableMethodKeysReactHandling[] = [
+      'onAdd',
+      'onUpdate',
+      'onRemove',
+      'onStart',
+      'onEnd'
+    ]
+    const norms: Exclude<SortableMethodKeysWithoutMove, SortableMethodKeysReactHandling>[] = [
       'onUnchoose',
       'onChoose',
       'onClone',
@@ -135,7 +142,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    * triggers one of the internal methods
    * when a sortable method is triggered
    */
-  callbacksWithOnEvent(evtName: MethodsDOM) {
+  callbacksWithOnEvent(evtName: SortableMethodKeysReactHandling) {
     return (evt: SortableEvent) => {
       // calls state change
       this[evtName](evt)
@@ -147,7 +154,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   /**
    * Returns a function that triggers when a sortable method is triggered
    */
-  callbacks(evtName: Exclude<MethodsExcludingMove, MethodsDOM>) {
+  callbacks(evtName: Exclude<SortableMethodKeysWithoutMove, SortableMethodKeysReactHandling>) {
     return (evt: SortableEvent) => {
       // call the component prop
       this.triggerOnElse(evt, evtName)
@@ -179,26 +186,16 @@ export interface ReactSortableProps<T> extends NewOptions {
   className?: string
 }
 
-/**
- * This is the recommended list item type.
- * implement or extend this when creating your own.
- */
-export interface Item {
-  id: string
-  children?: Item[]
-  [key: string]: any
+export interface Store {
+  dragging: null | ReactSortable<any>
 }
+
+export type SetStateCallback<S> = Dispatch<(prevState: S) => S>
 
 //
 // TYPES FOR METHODS
 //
-
-/** Method names that fire in this, when this is react-sortable */
-export type MethodsDOM = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd'
-
-export type MethodsExcludingMove = Exclude<Methods, 'onMove'>
-
-export type Methods =
+export type SortableMethodKeys =
   | 'onAdd'
   | 'onChoose'
   | 'onClone'
@@ -212,14 +209,24 @@ export type Methods =
   | 'onUpdate'
   | 'onChange'
 
-export interface NewMethodMove {
-  onMove: (evt: SortableEvent, originalEvent: Event, store: Store) => boolean | -1 | 0 | 1 // return false; — for cancel
+/** Method names that fire in `this`, when this is react-sortable */
+type SortableMethodKeysReactHandling = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd'
+
+type SortableMethodKeysWithoutMove = Exclude<SortableMethodKeys, 'onMove'>
+
+interface NewSortableMethodMove {
+  onMove?: (evt: SortableEvent, originalEvent: Event, store: Store) => boolean | -1 | 0 | 1 // return false; — for cancel
 }
 
 // remove old methds, add new
 // remove methods
 // ad all but move as partial
 // add ove as partial
-export type NewOptions = Omit<Options, Methods> & ss & Partial<NewMethodMove>
-type ss = Partial<Record<MethodsExcludingMove, (evt: SortableEvent, store: Store) => void>>
-export type SetStateCallback<S> = Dispatch<(prevState: S) => S>
+type NewOptions = Omit<Options, SortableMethodKeys> &
+  NewSortableMethodsWithoutMove &
+  NewSortableMethodMove
+
+type NewSortableMethodsWithoutMove = Partial<
+  Record<SortableMethodKeysWithoutMove, (evt: SortableEvent, store: Store) => void>
+>
+// type NewMoveOptions
