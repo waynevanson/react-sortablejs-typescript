@@ -1,7 +1,6 @@
 import React, { FC, ReactElement, cloneElement } from 'react'
 import { ReactSortable, ReactSortableProps, SetStateCallback } from '../react-sortable'
 import { GroupOptions } from 'sortablejs'
-import { useSorting, useHandlers } from './hooks'
 import { Item } from '..'
 
 /**
@@ -10,15 +9,23 @@ import { Item } from '..'
  * @param props
  */
 export function SortableRecursive<T extends Item>(props: SortableRecursiveProps<T>) {
-  const { children, list, depth: propDepth, setRootState, ...options } = props
+  const { children, list, depth: propDepth, setList, ...options } = props
   const depth = propDepth || 0
 
-  const sorting = useSorting(props, depth)
-  const handlers = useHandlers(props, sorting)
+  const handleChildChange = (index: number): SetStateCallback<T[]> => prevChildrenFunc => {
+    setList(prevList => {
+      const newList = [...prevList]
+      const prevItem = newList[index]
+      const children = prevChildrenFunc(prevItem.children as T[])
+      const newItem: T = { ...prevItem, children }
+      newList.splice(index, 1, newItem)
+      return newList
+    })
+  }
 
   return (
-    <ReactSortable uncontrolled {...options} {...handlers} list={list}>
-      {list.map(item => {
+    <ReactSortable {...options} setList={setList} list={list}>
+      {list.map((item, index) => {
         // todo:
         // allow a ref?
         // parse details like `depth` and `index` and `path` to the `children` function
@@ -29,6 +36,7 @@ export function SortableRecursive<T extends Item>(props: SortableRecursiveProps<
             depth={depth + 1}
             //@ts-ignore
             list={item.children || []}
+            setList={handleChildChange(index)}
           />
         )
         return cloneElement(children(item, Nested), { key: item.id })
@@ -38,12 +46,12 @@ export function SortableRecursive<T extends Item>(props: SortableRecursiveProps<
 }
 
 export interface SortableRecursiveProps<T extends Item>
-  extends Omit<ReactSortableProps<T>, 'setList' | 'children'> {
-
+  extends Omit<ReactSortableProps<T>, 'children'> {
   // nested sortable
   children: ReactSortableChildren<T>
   depth: number
   list: T[]
+  setList: SetStateCallback<T[]>
 
   setRootState: SetStateCallback<T[]>
 

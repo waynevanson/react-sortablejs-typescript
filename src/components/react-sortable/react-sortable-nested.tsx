@@ -4,7 +4,15 @@ import { Item } from '.'
 
 export function ReactSortableNested<T extends Item>(props: ReactSortableNestedProps<T>) {
   const { list, setList, ...otherProps } = props
-  return <SortableRecursive setRootState={setList} list={list} depth={0} {...otherProps} />
+  return (
+    <SortableRecursive
+      setList={setList}
+      setRootState={setList}
+      list={list}
+      depth={0}
+      {...otherProps}
+    />
+  )
 }
 
 export interface ReactSortableNestedProps<T extends Item>
@@ -25,6 +33,6 @@ export interface ReactSortableNestedProps<T extends Item>
  */
 export interface Item {
   id: string
-  children?: Item[]
+  children: Item[]
   [key: string]: any
 }

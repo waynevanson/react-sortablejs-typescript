@@ -1,9 +1,9 @@
 import styled from 'styled-components'
 
 export const makeState = () => [
-  { id: '1', name: 'shrek' },
-  { id: '2', name: 'fiona' },
-  { id: '3', name: 'donkey' }
+  { id: '1', name: 'shrek', children: [] },
+  { id: '2', name: 'fiona', children: [] },
+  { id: '3', name: 'donkey', children: [] }
 ]
 
 export const List = styled.div`

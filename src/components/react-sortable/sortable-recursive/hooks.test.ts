@@ -1,91 +1,20 @@
 import { addToState, removeFromState } from './hooks'
+import { Item } from '..'
 
-const state = [
-  { id: '1', name: 'shrek' },
-  { id: '2', name: 'fiona' },
-  { id: '3', name: 'donkey' },
-  { id: '4', name: 'kingdom', children: [{ id: '8', name: 'King' }, { id: '9', name: 'Queen' }] }
+const state: Item[] = [
+  { id: '1', name: 'shrek', children: [] },
+  { id: '2', name: 'fiona', children: [] },
+  { id: '3', name: 'donkey', children: [] },
+  {
+    id: '4',
+    name: 'kingdom',
+    children: [{ id: '8', name: 'King', children: [] }, { id: '9', name: 'Queen', children: [] }]
+  }
 ]
 
-const refItem = { id: '6', name: 'butters' }
+const refItem: Item = { id: '6', name: 'butters', children: [] }
 
 describe(addToState, () => {
-  it('adds one at 0 depth', () => {
-    const r = addToState({
-      state,
-      refItem,
-      depth: 0,
-      index: 2,
-      currentDepth: 0
-    })
-    const e = [
-      { id: '1', name: 'shrek' },
-      { id: '2', name: 'fiona' },
-      refItem,
-      { id: '3', name: 'donkey' },
-      {
-        id: '4',
-        name: 'kingdom',
-        children: [{ id: '8', name: 'King' }, { id: '9', name: 'Queen' }]
-      }
-    ]
-    expect(r).toStrictEqual(e)
-  })
-  it('adds one at 0 depth', () => {
-    const r = addToState({
-      state,
-      refItem,
-      depth: 1,
-      index: 1,
-      currentDepth: 0
-    })
-    const e = [
-      { id: '1', name: 'shrek' },
-      { id: '2', name: 'fiona' },
-
-      { id: '3', name: 'donkey' },
-      {
-        id: '4',
-        name: 'kingdom',
-        children: [{ id: '8', name: 'King' }, refItem, { id: '9', name: 'Queen' }]
-      }
-    ]
-    expect(r).toStrictEqual(e)
-  })
+  it.todo('')
 })
-
-describe(removeFromState, () => {
-  it('removes one at 0 depth', () => {
-    const r = removeFromState({
-      state,
-      depth: 0,
-      index: 2,
-      currentDepth: 0
-    })
-    const e = [
-      { id: '1', name: 'shrek' },
-      { id: '2', name: 'fiona' },
-      {
-        id: '4',
-        name: 'kingdom',
-        children: [{ id: '8', name: 'King' }, { id: '9', name: 'Queen' }]
-      }
-    ]
-    expect(r).toStrictEqual(e)
-  })
-  it('removes one at 1 depth', () => {
-    const r = removeFromState({
-      state,
-      depth: 1,
-      index: 1,
-      currentDepth: 0
-    })
-    const e = [
-      { id: '1', name: 'shrek' },
-      { id: '2', name: 'fiona' },
-      { id: '3', name: 'donkey' },
-      { id: '4', name: 'kingdom', children: [{ id: '8', name: 'King' }] }
-    ]
-    expect(r).toStrictEqual(e)
-  })
-})
+describe(removeFromState, () => {})
