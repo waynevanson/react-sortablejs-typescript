@@ -1,8 +1,8 @@
 # `react-sortablejs-typescript`
 
-React component wrapping SortableJS written in Typescript!
+React component wrapping [SortableJS](https://github.com/SortableJS/Sortable) written in Typescript!
 
-## todo:
+## Features to add & things to do:
 
 - readme.
 - tests.
@@ -28,6 +28,12 @@ npm install -s react-sortablejs-typescript
 # OR
 yarn install react-sortablejs-typescript
 ```
+
+## What you should know
++ Explore the [Sortable Options API](https://github.com/SortableJS/Sortable#options)
++ Array.map
++ React.forwardRef
+
 
 ## Usage/Examples
 
