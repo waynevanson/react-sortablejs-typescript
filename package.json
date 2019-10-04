@@ -11,7 +11,7 @@
   "files": [
     "dist"
   ],
-  "types": "dist/react-sortable/index.d.ts",
+  "types": "dist/src/components/react-sortable/index.d.ts",
   "peerDependencies": {
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
