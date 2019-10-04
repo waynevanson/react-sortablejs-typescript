@@ -4,7 +4,7 @@
     "name": "Wayne Van Son",
     "email": "waynevspersonal@gmail.com"
   },
-  "version": "1.5.1",
+  "version": "2.0.0",
   "private": false,
   "main": "dist/index.js",
   "module": "dist/index.es.js",
