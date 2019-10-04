@@ -87,7 +87,7 @@ export class BasicClass extends Component<{}, BasicClassState> {
 }
 ```
 
-### Custom Componetn as a tag
+### Custom Component as a tag
 
 Whatever component you put into the `tag` property, it must have a `ref` prop available.
 
