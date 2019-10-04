@@ -1,4 +1,5 @@
 # `react-sortablejs-typescript`
+
 React component wrapping SortableJS written in Typescript!
 
 ## todo:
@@ -33,8 +34,8 @@ yarn install react-sortablejs-typescript
 ### Function Component
 
 ```tsx
-import React, { FC, useState } from "react"
-import { ReactSortable } from "react-sortablejs-typescript"
+import React, { FC, useState } from 'react'
+import { ReactSortable } from 'react-sortablejs-typescript'
 
 interface ItemType {
   id: string
@@ -42,7 +43,7 @@ interface ItemType {
 }
 
 export const BasicFunction: FC = props => {
-  const [state, setState] = useState<ItemType[]>([{ id: "1", name: "shrek" }])
+  const [state, setState] = useState<ItemType[]>([{ id: '1', name: 'shrek' }])
 
   return (
     <ReactSortable list={state} setList={setState}>
@@ -57,8 +58,8 @@ export const BasicFunction: FC = props => {
 ### Class Component
 
 ```tsx
-import React, { Component } from "react"
-import { ReactSortable } from "react-sortablejs-typescript"
+import React, { Component } from 'react'
+import { ReactSortable } from 'react-sortablejs-typescript'
 
 interface BasicClassState {
   list: { id: string; name: string }[]
@@ -66,7 +67,7 @@ interface BasicClassState {
 
 export class BasicClass extends Component<{}, BasicClassState> {
   state: BasicClassState = {
-    list: [{ id: "1", name: "shrek" }]
+    list: [{ id: '1', name: 'shrek' }]
   }
   render() {
     return (
@@ -80,16 +81,46 @@ export class BasicClass extends Component<{}, BasicClassState> {
 }
 ```
 
-## Upgrading to Major Version `+2.0.0`
+### Custom Componetn as a tag
 
-We've gone out of our way to make this component more like a react component, rather than just a wrapper.
-This means there are huge changes in the way props should be use in React. Because it's written in Typescript, the API should be available in your IDE. We're also added a lot of typings from `types/sortablejs` and looking to push those once we've written tests for them. I'd like to see the JSDocs tags used to their full extent, but that's a work in progress.
+Whatever component you put into the `tag` property, it must have a `ref` prop available.
 
-All of the `Sortable.Options` are now props in `react-sortablejs`, and will be merged with the actual options in the Sortable instance.
+Adding a string like `'div'` or `'ul'` works because they're passed to `React.createElement()`. 
+Doing the same with a `React.(Component | FC)` wil throw an error, because there is no ref.
+
+#### Solution
+If it doesn't have one, you can add one using `React.forwardRef()`. 
+This fantastic API allows the ref to be visible when creating components.
+
+```tsx
+import React, { FC, useState, forwardRef } from "react"
+import { ReactSortable } from "react-sortablejs-typescript"
+
+interface ItemType {
+  id: string
+  name: string
+}
+
+const CustomComponent = forwardRef<HTMLDivElement>((props, ref) => {
+  return <div ref={ref}>{props.children}/<div>
+})
+
+export const BasicFunction: FC = props => {
+  const [state, setState] = useState<ItemType[]>([{ id: "1", name: "shrek" }])
+
+  return (
+    <ReactSortable tag={CustomComponent} list={state} setList={setState}>
+      {state.map(item => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </ReactSortable>
+  )
+}
+```
 
 ## How does it work?
 
-Sortable affects the DOM, adding, and removing nodes when it needs to in order to achieve the smooth transitions we all know an love.
+Sortable affects the DOM, adding, and removing nodes when it needs to in order to achieve the smooth transitions we all know an love. The plugin reverses any actions the DOM makes and allows React to handle this when the state changes.
 
 ## Caveats / Gotchas
 
