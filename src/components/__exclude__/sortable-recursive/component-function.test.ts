@@ -1,5 +1,5 @@
-import { replaceList } from '.'
-import { Item } from '..'
+import { replaceList } from '../sortable-recursive'
+import { Item } from '../react-sortable-nested'
 
 const state: Item[] = [
   { id: '1', name: 'shrek', children: [] },

@@ -1,8 +1,8 @@
 import React from 'react'
 import { useState, FC } from 'react'
-import { Item, ReactSortableNested } from '../react-sortable'
-import { makeState, List, NodeLike } from './functions-and-styles'
+import { makeState, List, NodeLike } from '../examples/functions-and-styles'
 import { removeNode } from '../react-sortable/util'
+import { Item, ReactSortableNested } from './react-sortable-nested'
 
 export const NestedExample: FC = props => {
   const [state, setState] = useState<Item[]>([
@@ -33,7 +33,7 @@ export const NestedExample: FC = props => {
           const fromName = typeof fromgo === 'object' ? fromgo.name : fromgo
           const clone = true
           const pullval = fromName || true
-          return clone && fromName !== toName ? 'clone' : pullval
+          return typeof pullval === 'boolean' ? !!pullval : [pullval]
         },
         put: true
       }}

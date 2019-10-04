@@ -43,7 +43,6 @@ export function destructurePropsForOptions<T>(
     tag,
     style,
     className,
-    uncontrolled,
     // sortable options that have methods we want to overwrite
     onAdd,
     onChange,
@@ -57,6 +56,7 @@ export function destructurePropsForOptions<T>(
     onUnchoose,
     onUpdate,
     onMove,
+    onSpill,
     ...options
   } = props
   return options

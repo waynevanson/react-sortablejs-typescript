@@ -1,130 +1,120 @@
 # tsc-react-sortablejs
 
 React component written in Typescript
+// todo
+
+- readme.
+- tests.
+- clone function.
+- set state should have the sortable instance in it and store.
+- provide a context wrapper for `store` object, to enhance security.
 
 ## Features
 
-- Typescript support!
-- Drag and Drop between lists
-- Nested lists
-- Calculates items in list automatically
-- Full API of SortableJS
-- Convenient SortableJS API via `props`
-- Controlled and Uncontrolled components
-- Sortable Utilities
-- Compatible with third part UI libraries
-- SortableJS Plugin Support
+- [x] Typescript support & updated @types/sortablejs definitions
+- [x] Drag and Drop between lists
+- [x] Calculates items in list automatically
+- [x] Full API of SortableJS
+- [x] Convenient SortableJS API via `props`
+- [x] Compatible with third part UI libraries
+- [x] SortableJS Plugin Support
 
 If you find any features lacking, create an issue and/or pull request.
 
+## Installation
+
+```shell
+npm install -s react-sortablejs
+# OR
+yarn install reac-sortablejs
+```
+
+## Usage/Examples
+
+### Function Component
+
+```tsx
+import React, { FC, useState } from "react"
+import { ReactSortable } from "react-sortablejs"
+
+interface ItemType {
+  id: string
+  name: string
+}
+
+export const BasicFunction: FC = props => {
+  const [state, setState] = useState<ItemType[]>([{ id: "1", name: "shrek" }])
+
+  return (
+    <ReactSortable list={state} setList={setState}>
+      {state.map(item => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </ReactSortable>
+  )
+}
+```
+
+### Class Component
+
+```tsx
+import React, { Component } from "react"
+import { ReactSortable } from "react-sortablejs"
+
+interface BasicClassState {
+  list: { id: string; name: string }[]
+}
+
+export class BasicClass extends Component<{}, BasicClassState> {
+  state: BasicClassState = {
+    list: [{ id: "1", name: "shrek" }]
+  }
+  render() {
+    return (
+      <ReactSortable list={this.state.list} setList={newState => this.setState({ list: newState })}>
+        {this.state.list.map(item => (
+          <div key={item.id}>{item.name}</div>
+        ))}
+      </ReactSortable>
+    )
+  }
+}
+```
+
 ## Upgrading to Major Version `+2.0.0`
 
-There are a number of API changes that are breaking. `react-sortablejs` was lacking many features ofit's sibling intergrations, such as in `vuedraggable`.
+We've gone out of our way to make this component more like a react component, rather than just a wrapper.
+This means there are huge changes in the way props should be use in React. Because it's written in Typescript, the API should be available in your IDE. We're also added a lot of typings from `types/sortablejs` and looking to push those once we've written tests for them. I'd like to see the JSDocs tags used to their full extent, but that's a work in progress.
 
-### `state`
+All of the `Sortable.Options` are now props in `react-sortablejs`, and will be merged with the actual options in the Sortable instance.
 
-The `state` prop takes the state you'd like to as a list. This is then changed inside `ReactSortable` to manage the state for you.
+## How does it work?
 
-This is primarily used to return state for you in the new `onChange` prop.
-
-### options
-
-One of the largest changes is the API for the option, group and listening to sortable events.
-
-#### option
-
-#### group
-
-#### Event Listeners from Sortable
-
-##### start
-
-##### end
-
-##### choose
-
-##### unchoose
-
-#####
-
-## Import
-
-The following types are available for import via `ReactSortable`:
-
-- SortableJS as a type
-- MultiDrag as a class (plugin)
-- ReactSortable (use as default)
-
-This changes returns
-
-`onChange` is now `(list: any[], Sortable: SortableJS, evt: SortableEvent) => any` from `(order: string[], Sortable: SortableJS, evt: SortableEvent) => any`. There is no need for you to sort out your own lists anymore.
-
-- Controlled Components only. To use without managing much state, use a `FunctionComponent` and utilize the `useState()` hook provided by React.
-- `data-id` is not required for each list item anymore, as the component will do this for you when the `unique` key (not the index) is provided. There is a warning message for this.
-- Add event listeners via `props`, such as `add={(evt) => console.log('I added an item from a different list to this list!)}`
+Sortable affects the DOM, adding, and removing nodes when it needs to in order to achieve the smooth transitions we all know an love.
 
 ## Caveats / Gotchas
 
-### React is functional and **not** OOP
-
-state works from the top down, so you have to affect the root state. if you want to use nested sorrtables, refer to the nested component
-
 ### Nesting
 
-we've created a component
+#### Problem
 
-## Examples
+When moving items in between layers of the same list, it does not rerender the UI properly.
 
-### Controlled Component - Functional
+Nesting in this fashion is not ready for production.
+React is based of functional programming philosphies,
+where as the DOM and most other web API's are object oriented.
 
-```tsx
-```
+This means that using `state` and `setState` are causing issues when the sortable API triggers a state change.
 
-### Controlled Component - Class
+#### What does work?
 
-```tsx
-```
+Our usage indicates that as long as we only move items between lists that don't use the same `setState` function.
 
-## Contributing
+I hope to provide an example soon.
 
-### How does it work?
+#### Solutions
 
-In a nutshell, it transposes `props` into `Sortable` options and reverses any DOM changes that `Sortable` creates so react can handle them.
-This way we have a great developer experience with all the great features of `Sortable` with the power of React.# react-sortablejs-typescript
+We don't have anything that works 100%, but here I'd like to spit ball some potential avenues to look down.
 
-```
-
-```
-
-Hi all,
-
-I'm writing a react component for the third party library, which has some `callback` functions.
-
-Riddle me this:
-
-- Each component I wrap will create an instance of the plugin.
-- I have multiple instances of the component.
-- all the components trigger the callback on the *same render*.
-- The callback on the component changes the state (an array).
-- The callback needs the ***new value*** of the updated state before being triggered
-
-What I expect:
-
-- The first callback fires
-- state changes using `setState`
-- react updates internally so `state` exposes the new value to the component
-- the second callback fires, using the new `state` value in the calculation
-
-What actually happens:
-
-- The first callback fires
-- state changes using `setState`
-- react updates internally so `state` exposes the new value to the component
-- the second callback fires, using the **_old `state`_** value in the calculation
-
-According to the docs, `setState` triggers a new render, which updates the value (this happens).
-
-The Problem is that the updated `state` value is still not being used for the calculation.
-
-When I think about using `useEffect`, that more so triggers side effects. In my scenario, I want a non-react thing triggering react, so this is backwards and doesn't seem to be the solution.
-
+- Use `onMove` to handle state changes instead of `onAdd`,`onRemove`, etc.
+- Create a Sortable plugin specifically for react-sortbalejs

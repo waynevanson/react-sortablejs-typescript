@@ -1,4 +1,4 @@
-import React, { createElement, createRef, Component, cloneElement, useState, useCallback } from 'react';
+import { createElement, createRef, Component } from 'react';
 import Sortable from 'sortablejs';
 
 /*! *****************************************************************************
@@ -51,17 +51,6 @@ function __rest(s, e) {
                 t[p[i]] = s[p[i]];
         }
     return t;
-}
-
-function __values(o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
-    if (m) return m.call(o);
-    return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
 }
 
 function __read(o, n) {
@@ -119,9 +108,9 @@ function insertNodeAt(parent, newChild, position) {
 function destructurePropsForOptions(props) {
     var 
     // react sortable props
-    list = props.list, setList = props.setList, children = props.children, tag = props.tag, style = props.style, className = props.className, uncontrolled = props.uncontrolled, 
+    list = props.list, setList = props.setList, children = props.children, tag = props.tag, style = props.style, className = props.className, 
     // sortable options that have methods we want to overwrite
-    onAdd = props.onAdd, onChange = props.onChange, onChoose = props.onChoose, onClone = props.onClone, onEnd = props.onEnd, onFilter = props.onFilter, onRemove = props.onRemove, onSort = props.onSort, onStart = props.onStart, onUnchoose = props.onUnchoose, onUpdate = props.onUpdate, onMove = props.onMove, options = __rest(props, ["list", "setList", "children", "tag", "style", "className", "uncontrolled", "onAdd", "onChange", "onChoose", "onClone", "onEnd", "onFilter", "onRemove", "onSort", "onStart", "onUnchoose", "onUpdate", "onMove"]);
+    onAdd = props.onAdd, onChange = props.onChange, onChoose = props.onChoose, onClone = props.onClone, onEnd = props.onEnd, onFilter = props.onFilter, onRemove = props.onRemove, onSort = props.onSort, onStart = props.onStart, onUnchoose = props.onUnchoose, onUpdate = props.onUpdate, onMove = props.onMove, onSpill = props.onSpill, options = __rest(props, ["list", "setList", "children", "tag", "style", "className", "onAdd", "onChange", "onChoose", "onClone", "onEnd", "onFilter", "onRemove", "onSort", "onStart", "onUnchoose", "onUpdate", "onMove", "onSpill"]);
     return options;
 }
 
@@ -131,25 +120,46 @@ var store = { dragging: null };
  * A component for making the first layer of children sortable,
  * using `SortableJS` to manipulate the DOM.
  */
+// todo: clone function from props
 var ReactSortable = /** @class */ (function (_super) {
     __extends(ReactSortable, _super);
     function ReactSortable(props) {
         var _this = _super.call(this, props) || this;
-        _this.childState = null;
-        _this.state = { isClone: false };
         _this.ref = createRef();
         return _this;
     }
+    Object.defineProperty(ReactSortable.prototype, "sortable", {
+        get: function () {
+            var el = this.ref.current;
+            if (el === null)
+                return null;
+            var key = Object.keys(el).find(function (k) { return k.includes("Sortable"); });
+            if (!key)
+                return null;
+            //@ts-ignore
+            return el[key];
+        },
+        enumerable: true,
+        configurable: true
+    });
     ReactSortable.prototype.componentDidMount = function () {
         if (this.ref.current === null)
             return;
         var newOptions = this.makeOptions();
         Sortable.create(this.ref.current, newOptions);
+        // mount plugins if parsed
+        var plugins = this.props.plugins;
+        if (!plugins)
+            return;
+        if (plugins instanceof Array)
+            Sortable.mount.apply(Sortable, __spread(plugins));
+        else
+            Sortable.mount(plugins);
     };
     ReactSortable.prototype.render = function () {
         var _a = this.props, tag = _a.tag, children = _a.children, style = _a.style, className = _a.className;
         var classicProps = { style: style, className: className };
-        var tagCheck = !tag || tag === null ? 'div' : tag;
+        var tagCheck = !tag || tag === null ? "div" : tag;
         // todo: add data-id to children
         return createElement(tagCheck, __assign({ ref: this.ref }, classicProps), children);
     };
@@ -158,50 +168,43 @@ var ReactSortable = /** @class */ (function (_super) {
      * @param evt
      * @param evtName
      */
-    // create onSpill
     ReactSortable.prototype.triggerOnElse = function (evt, evtName) {
         var propEvent = this.props[evtName];
         if (propEvent)
-            propEvent(evt, store);
+            propEvent(evt, this.sortable, store);
     };
     // Element is dropped into the list from another list
     ReactSortable.prototype.onAdd = function (evt) {
-        var _a = this.props, list = _a.list, setList = _a.setList, uncontrolled = _a.uncontrolled;
+        var _a = this.props, list = _a.list, setList = _a.setList;
         // remove from this list,
         removeNode(evt.item);
-        if (uncontrolled || !setList)
-            return;
         // add item to the `props.state`
         var newState = __spread(list);
         var newItem = store.dragging.props.list[evt.oldIndex];
         newState.splice(evt.newIndex, 0, newItem);
-        setList(newState);
+        setList(newState, this.sortable, store);
     };
     // Element is removed from the list into another list
     ReactSortable.prototype.onRemove = function (evt) {
         var item = evt.item, from = evt.from, oldIndex = evt.oldIndex;
         insertNodeAt(from, item, oldIndex);
-        var _a = this.props, list = _a.list, setList = _a.setList, uncontrolled = _a.uncontrolled;
-        if (uncontrolled || !setList)
-            return;
+        var _a = this.props, list = _a.list, setList = _a.setList;
         // remove item in the `props.state`fromComponent
         var newState = __spread(list);
         newState.splice(oldIndex, 1);
-        setList(newState);
+        setList(newState, this.sortable, store);
     };
     // Changed sorting within list
     // basically the add and remove for actions in the same list
     ReactSortable.prototype.onUpdate = function (evt) {
         removeNode(evt.item);
         insertNodeAt(evt.from, evt.item, evt.oldIndex);
-        var _a = this.props, list = _a.list, setList = _a.setList, uncontrolled = _a.uncontrolled;
-        if (uncontrolled || !setList)
-            return;
+        var _a = this.props, list = _a.list, setList = _a.setList;
         // remove and add items to the `props.state`
         var newState = __spread(list);
         var _b = __read(newState.splice(evt.oldIndex, 1), 1), oldItem = _b[0];
         newState.splice(evt.newIndex, 0, oldItem);
-        setList(newState);
+        setList(newState, this.sortable, store);
     };
     ReactSortable.prototype.onStart = function (evt) {
         store.dragging = this;
@@ -210,27 +213,24 @@ var ReactSortable = /** @class */ (function (_super) {
         store.dragging = null;
     };
     ReactSortable.prototype.onSpill = function (evt) {
-        removeNode(evt.item);
+        var _a = this.props, removeOnSpill = _a.removeOnSpill, revertOnSpill = _a.revertOnSpill;
+        if (removeOnSpill && !revertOnSpill)
+            removeNode(evt.item);
     };
+    ReactSortable.prototype.onClone = function (evt) { };
     /**
      * Append the props that are options into the options
      */
     ReactSortable.prototype.makeOptions = function () {
         var _this = this;
-        var removers = [
-            'onAdd',
-            'onUpdate',
-            'onRemove',
-            'onStart',
-            'onEnd'
-        ];
+        var removers = ["onAdd", "onUpdate", "onRemove", "onStart", "onEnd"];
         var norms = [
-            'onUnchoose',
-            'onChoose',
-            'onClone',
-            'onFilter',
-            'onSort',
-            'onChange'
+            "onUnchoose",
+            "onChoose",
+            "onClone",
+            "onFilter",
+            "onSort",
+            "onChange"
         ];
         var options = destructurePropsForOptions(this.props);
         var newOptions = options;
@@ -242,7 +242,7 @@ var ReactSortable = /** @class */ (function (_super) {
     };
     /**
      * Returns a function that
-     * triggers one of the internal methods
+     * triggers one of the `ReactSortable` internal methods
      * when a sortable method is triggered
      */
     ReactSortable.prototype.callbacksWithOnEvent = function (evtName) {
@@ -266,131 +266,5 @@ var ReactSortable = /** @class */ (function (_super) {
     };
     return ReactSortable;
 }(Component));
-// type NewMoveOptions
-//  todo: add on spill
 
-/**
- * State is managed for you, so relax!
- *
- * @param props
- */
-function SortableRecursive(props) {
-    var children = props.children, list = props.list, oldPath = props.path, setList = props.setList, options = __rest(props, ["children", "list", "path", "setList"]);
-    var handleChildChange = useHandleChild(props);
-    return (React.createElement(ReactSortable, __assign({}, options, { setList: setList, list: list }), list.map(function (item, index) {
-        var path = __spread(oldPath, [index]);
-        // todo:
-        // allow a ref?
-        var Nested = function () { return (React.createElement(SortableRecursive, __assign({}, props, { children: children, path: path, 
-            //@ts-ignore
-            list: item.children || [], setList: handleChildChange(item.id, path) }))); };
-        var component = children({
-            item: item,
-            Nested: Nested,
-            index: index,
-            list: list,
-            path: path,
-            depth: path.length
-        });
-        return cloneElement(component, { key: item.id });
-    })));
-}
-function useForceUpdate() {
-    var _a = __read(useState({}), 2), setFake = _a[1];
-    var callback = useCallback(function () { return setFake({}); }, []);
-    return callback;
-}
-function useHandleChild(props) {
-    var setList = props.setList;
-    var forceUpdate = useForceUpdate();
-    return function (id, path) { return function (children) {
-        setList(function (prevList) {
-            // contains this list; parents of the item
-            var newContextList = findListById(prevList, path, id);
-            console.log({ newContextList: newContextList });
-            if (!newContextList) {
-                console.error('new context list was not found.');
-                return prevList;
-            }
-            // make the new item
-            var index = newContextList.findIndex(function (item) { return item.id === id; });
-            var newItem = __assign(__assign({}, newContextList[index]), { children: children });
-            newContextList.splice(index, 1, newItem);
-            var newList = replaceList(prevList, newContextList, path, newItem.id);
-            return newList;
-        });
-        forceUpdate();
-    }; };
-}
-function findListById(rootState, path, id, d) {
-    var e_1, _a;
-    if (d === void 0) { d = 0; }
-    // parent depth and index, not the end path
-    var depth = path.length - 1;
-    try {
-        for (var rootState_1 = __values(rootState), rootState_1_1 = rootState_1.next(); !rootState_1_1.done; rootState_1_1 = rootState_1.next()) {
-            var item = rootState_1_1.value;
-            var matchesDepth = depth === d;
-            //@ts-ignore
-            if (matchesDepth && item.id === id)
-                return rootState;
-            var children = findListById(item.children, path, id, d + 1);
-            //@ts-ignore
-            if (children)
-                return children;
-        }
-    }
-    catch (e_1_1) { e_1 = { error: e_1_1 }; }
-    finally {
-        try {
-            if (rootState_1_1 && !rootState_1_1.done && (_a = rootState_1.return)) _a.call(rootState_1);
-        }
-        finally { if (e_1) throw e_1.error; }
-    }
-    return;
-}
-// lower case variable names are "current" values for the loop
-function replaceList(rootState, newContextState, 
-// use path - 1
-path, id, d) {
-    var e_2, _a;
-    if (d === void 0) { d = 0; }
-    var newList = [];
-    // parent depth and index, not the end path
-    var depth = path.length - 1;
-    try {
-        for (var rootState_2 = __values(rootState), rootState_2_1 = rootState_2.next(); !rootState_2_1.done; rootState_2_1 = rootState_2.next()) {
-            var item = rootState_2_1.value;
-            var matchesDepth = depth === d;
-            var matchesId = item.id === id;
-            if (matchesId && matchesDepth)
-                return newContextState;
-            var children = replaceList(item.children, newContextState, path, id, d + 1);
-            var newItem = __assign(__assign({}, item), { children: children });
-            newList.push(newItem);
-        }
-    }
-    catch (e_2_1) { e_2 = { error: e_2_1 }; }
-    finally {
-        try {
-            if (rootState_2_1 && !rootState_2_1.done && (_a = rootState_2.return)) _a.call(rootState_2);
-        }
-        finally { if (e_2) throw e_2.error; }
-    }
-    return rootState;
-}
-
-// it's not rendering some updates correctly.
-// maybe it's not the best thing ever.
-// todo:
-// callback in reactsortable should be of that crazy nature.
-// a callback in the setstate, but I can retrieve the prevstate and the list values
-// todo:
-// a lot of stuff lol
-function ReactSortableNested(props) {
-    var list = props.list, setList = props.setList, otherProps = __rest(props, ["list", "setList"]);
-    console.log({ list: list });
-    return (React.createElement(SortableRecursive, __assign({ path: [], setList: setList, list: list }, otherProps)));
-}
-
-export { ReactSortable, ReactSortableNested };
+export { ReactSortable };

@@ -1,7 +1,6 @@
 import React, { FC } from 'react'
 import styled from 'styled-components'
 import './App.css'
-import { NestedExample } from './components/examples/nested'
 
 /**
  * This holds the page with our examples
@@ -10,7 +9,7 @@ const App: React.FC = () => {
   return (
     <Wrap>
       <Shrek>
-        <Example component={NestedExample} number={1} title='nested!' />
+        {/* <Example component={} number={1} title='nested!' /> */}
       </Shrek>
     </Wrap>
   )

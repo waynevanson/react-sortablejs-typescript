@@ -4,13 +4,12 @@ import React, {
   cloneElement,
   Dispatch,
   SetStateAction,
-  useEffect,
   useState,
   useCallback
 } from 'react'
-import { ReactSortable, ReactSortableProps, SetStateCallback } from '../react-sortable'
+import { ReactSortable, ReactSortableProps } from '../../react-sortable/react-sortable'
 import { GroupOptions } from 'sortablejs'
-import { Item } from '..'
+import { Item } from '../react-sortable-nested'
 
 /**
  * State is managed for you, so relax!
@@ -21,6 +20,7 @@ export function SortableRecursive<T extends Item>(props: SortableRecursiveProps<
   const { children, list, path: oldPath, setList, ...options } = props
   const handleChildChange = useHandleChild(props)
   return (
+    //@ts-ignore
     <ReactSortable {...options} setList={setList} list={list}>
       {list.map((item, index) => {
         const path = [...oldPath, index]
@@ -62,6 +62,7 @@ export function useHandleChild<T extends Item>(props: SortableRecursiveProps<T>)
   const { setList } = props
   const forceUpdate = useForceUpdate()
   return (id: string, path: number[]): Dispatch<SetStateAction<T[]>> => children => {
+    //@ts-ignore
     setList(prevList => {
       // contains this list; parents of the item
       const newContextList = findListById(prevList, path, id)
@@ -72,6 +73,7 @@ export function useHandleChild<T extends Item>(props: SortableRecursiveProps<T>)
       }
       // make the new item
       const index = newContextList.findIndex(item => item.id === id)
+      //@ts-ignore
       const newItem: T = {
         ...newContextList[index],
         children
@@ -134,7 +136,7 @@ export interface SortableRecursiveProps<T extends Item>
   children: ReactSortableChildren<T>
   path: number[]
   list: T[]
-  setList: Dispatch<SetStateAction<T[]>>
+  setList: (newState: T[]) => void
 
   // react sortable
   // options

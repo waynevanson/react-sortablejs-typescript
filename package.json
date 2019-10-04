@@ -1,13 +1,17 @@
 {
-  "name": "react-sortablejs",
-  "version": "2.0.0-rc1",
-  "private": true,
+  "name": "react-sortablejs-typescript",
+  "author": {
+    "name": "Wayne Van Son",
+    "email": "waynevspersonal@gmail.com"
+  },
+  "version": "1.5.1",
+  "private": false,
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "files": [
     "dist"
   ],
-  "types": "dist/index.d.ts",
+  "types": "dist/react-sortable/index.d.ts",
   "peerDependencies": {
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
@@ -23,9 +27,9 @@
     "@types/node": "12.7.5",
     "@types/react": "16.9.2",
     "@types/react-dom": "16.9.0",
-    "@types/rollup": "^0.54.0",
-    "@types/sortablejs": "^1.7.2",
+    "@types/sortablejs": "file:local-types/sortablejs",
     "@types/styled-components": "^4.1.19",
+    "dtslint": "^0.9.8",
     "react": "^16.9.0",
     "react-app-rewired": "^2.1.3",
     "react-dom": "^16.9.0",

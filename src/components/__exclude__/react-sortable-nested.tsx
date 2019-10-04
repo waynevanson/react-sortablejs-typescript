@@ -1,6 +1,5 @@
 import React, { Dispatch, SetStateAction } from 'react'
 import { SortableRecursiveProps, SortableRecursive } from './sortable-recursive'
-import { Item } from '.'
 
 // it's not rendering some updates correctly.
 // maybe it's not the best thing ever.
@@ -10,6 +9,14 @@ import { Item } from '.'
 
 // todo:
 // a lot of stuff lol
+/**
+ * *** USE AT OWN RISK ***
+ * 
+ * This doesn't work properly yet, and it may not ever.
+ * 
+ * firing two events that affect the same state don't trigger rerenders properly.
+ * @param props 
+ */
 export function ReactSortableNested<T extends Item>(props: ReactSortableNestedProps<T>) {
   const { list, setList, ...otherProps } = props
   console.log({list})
