@@ -1,12 +1,11 @@
-# tsc-react-sortablejs
+# `react-sortablejs-typescript`
+React component wrapping SortableJS written in Typescript!
 
-React component written in Typescript
-// todo
+## todo:
 
 - readme.
 - tests.
 - clone function.
-- set state should have the sortable instance in it and store.
 - provide a context wrapper for `store` object, to enhance security.
 
 ## Features
@@ -24,9 +23,9 @@ If you find any features lacking, create an issue and/or pull request.
 ## Installation
 
 ```shell
-npm install -s react-sortablejs
+npm install -s react-sortablejs-typescript
 # OR
-yarn install reac-sortablejs
+yarn install react-sortablejs-typescript
 ```
 
 ## Usage/Examples
@@ -35,7 +34,7 @@ yarn install reac-sortablejs
 
 ```tsx
 import React, { FC, useState } from "react"
-import { ReactSortable } from "react-sortablejs"
+import { ReactSortable } from "react-sortablejs-typescript"
 
 interface ItemType {
   id: string
@@ -59,7 +58,7 @@ export const BasicFunction: FC = props => {
 
 ```tsx
 import React, { Component } from "react"
-import { ReactSortable } from "react-sortablejs"
+import { ReactSortable } from "react-sortablejs-typescript"
 
 interface BasicClassState {
   list: { id: string; name: string }[]
