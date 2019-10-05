@@ -4,7 +4,7 @@ import { makeState } from './functions-and-styles'
 import { ReactSortable } from '../react-sortable'
 import { MultiDrag } from 'sortablejs'
 
-export const Basic: FC = props => {
+export const BasicAllProps: FC = props => {
   const [state, setState] = useState<Item[]>(makeState)
   const ref = useRef(null)
   return (

@@ -27,7 +27,7 @@ If you find any features lacking, create an issue and/or pull request.
 ```shell
 npm install -s react-sortablejs-typescript
 # OR
-yarn install react-sortablejs-typescript
+yarn add react-sortablejs-typescript
 ```
 
 ## What you should know
