@@ -31,10 +31,10 @@ yarn add react-sortablejs-typescript
 ```
 
 ## What you should know
-+ Explore the [Sortable Options API](https://github.com/SortableJS/Sortable#options)
-+ Array.map
-+ React.forwardRef
 
+- Explore the [Sortable Options API](https://github.com/SortableJS/Sortable#options)
+- Array.map
+- React.forwardRef
 
 ## Usage/Examples
 
@@ -92,11 +92,12 @@ export class BasicClass extends Component<{}, BasicClassState> {
 
 Whatever component you put into the `tag` property, it must have a `ref` prop available.
 
-Adding a string like `'div'` or `'ul'` works because they're passed to `React.createElement()`. 
+Adding a string like `'div'` or `'ul'` works because they're passed to `React.createElement()`.
 Doing the same with a `React.(Component | FC)` wil throw an error, because there is no ref.
 
 #### Solution
-If it doesn't have one, you can add one using `React.forwardRef()`. 
+
+If it doesn't have one, you can add one using `React.forwardRef()`.
 This fantastic API allows the ref to be visible when creating components.
 
 ```tsx
@@ -130,6 +131,52 @@ export const BasicFunction: FC = props => {
 Sortable affects the DOM, adding, and removing nodes when it needs to in order to achieve the smooth transitions we all know an love. The plugin reverses any actions the DOM makes and allows React to handle this when the state changes.
 
 ## Caveats / Gotchas
+
+### `setState()`
+
+#### Problem
+
+`setState` takes one argument only. If we look in the type defs, it does say that it has a second argument, but it isalready deprecated. react-sortable-typescript passes three arguments to `setState`. If you pass the `setState` straight from a `useState` hook, it will work as expected. However, there will be a warning in the console:
+
+> Warning: State updates from the useState() and useReducer() Hooks don't support the second callback argument.
+> To execute a side effect after rendering, declare it in the component body with useEffect().
+
+#### Solution
+
+This is just a warning, but can be annoying when developing. Instead of passing `setState` in directly, be explicit in your callback:
+
+```tsx
+import React, { FC, useState } from 'react'
+import { ReactSortable } from 'react-sortablejs-typescript'
+
+interface ItemType {
+  id: string
+  name: string
+}
+
+export const BasicFunction: FC = props => {
+  const [state, setState] = useState<ItemType[]>([{ id: '1', name: 'shrek' }])
+
+  return (
+    // `sortable` and `store` are here just to show what arguments have been passed.
+    // They are not required to be used.
+    <ReactSortable list={state} setList={(newState, sortable, store) => setState(newState)}>
+      {state.map(item => (
+        <div key={item.id}>{item.name}</div>
+      ))}
+    </ReactSortable>
+  )
+}
+```
+
+
+
+From the react type definitions:
+
+> ```tsx
+> // this technically does accept a second argument, but it's already under a deprecation warning
+> // and it's not even released so probably better to not define it.
+> ```
 
 ### Nesting
 
