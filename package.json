@@ -4,6 +4,7 @@
     "name": "Wayne Van Son",
     "email": "waynevspersonal@gmail.com"
   },
+  "license": "MIT",
   "version": "2.0.2",
   "private": false,
   "main": "dist/index.js",
@@ -17,10 +18,10 @@
     "react-dom": "^16.9.0"
   },
   "dependencies": {
-    "lodash.uniqueid": "^4.0.1",
-    "sortablejs": "^1.10.0"
+    "sortablejs": "^1.10.1"
   },
   "devDependencies": {
+    "lodash.uniqueid": "^4.0.1",
     "@testing-library/jest-dom": "^4.1.0",
     "@testing-library/react": "^9.1.4",
     "@types/jest": "24.0.18",
