@@ -16,7 +16,6 @@ export const BasicAllProps: FC = props => {
       animation={200}
       bubbleScroll={true}
       chosenClass="chosen"
-      // do me
       dataIdAttr="sortable-id"
       delay={300}
       delayOnTouchOnly={true}
@@ -52,7 +51,6 @@ export const BasicAllProps: FC = props => {
       removeOnSpill={false}
       revertOnSpill={true}
       scroll={true}
-
       // sortable-option methods
       onAdd={() => console.log('onAdd')}
       onChange={() => console.log('onAdd')}
