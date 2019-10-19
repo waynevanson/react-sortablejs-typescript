@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
     "noImplicitAny": true,
     "outDir": "dist",
     "esModuleInterop": true,
@@ -16,8 +15,20 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "module": "esnext",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ]
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "__tests__", "__exclude__"]
+  "include": [
+    "src",
+    // "local-types/sortablejs"
+  ],
+  "exclude": [
+    "node_modules",
+    "__tests__",
+    "__exclude__"
+  ]
 }

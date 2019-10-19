@@ -88,19 +88,21 @@ declare class Sortable {
 }
 
 declare namespace Sortable {
-    export interface Options
+    interface Options
     extends SortableOptions,
     AutoScrollOptions,
     MultiDragOptions,
     OnSpillOptions,
     SwapOptions {}
     
-    export class AutoScroll extends AutoScrollPlugin {}
-    export class MultiDrag extends MultiDragPlugin {}
-    export class OnSpill extends OnSpillPlugin {}
-    export class Swap extends SwapPlugin {}
+    class Plugin extends SortablePlugin {}
+    
+    class AutoScroll extends AutoScrollPlugin {}
+    class MultiDrag extends MultiDragPlugin {}
+    class OnSpill extends OnSpillPlugin {}
+    class Swap extends SwapPlugin {}
 
-    export interface SortableEvent extends Event {
+    interface SortableEvent extends Event {
         clone: HTMLElement;
         /**
          * previous list
@@ -125,7 +127,7 @@ declare namespace Sortable {
         to: HTMLElement;
     }
 
-    export interface MoveEvent extends Event {
+     interface MoveEvent extends Event {
         dragged: HTMLElement;
         draggedRect: DOMRect;
         from: HTMLElement;
@@ -140,7 +142,7 @@ declare namespace Sortable {
 
     type PullResult = ReadonlyArray<string> | boolean | 'clone';
     type PutResult = ReadonlyArray<string> | boolean;
-    export interface GroupOptions {
+    interface GroupOptions {
         /**
          * group name
          */
@@ -159,7 +161,7 @@ declare namespace Sortable {
         revertClone?: boolean;
     }
     type Direction = 'vertical' | 'horizontal';
-    export interface SortableOptions {
+     interface SortableOptions {
         /**
          * ms, animation speed moving items when sorting, `0` — without animation
          */

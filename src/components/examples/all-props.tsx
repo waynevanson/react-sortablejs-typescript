@@ -1,7 +1,7 @@
 import React, { FC, useState, useRef } from 'react'
 import { Item } from '../__exclude__/react-sortable-nested'
 import { makeState } from './functions-and-styles'
-import { ReactSortable, } from '../react-sortable'
+import { ReactSortable } from '../react-sortable'
 import { MultiDrag } from 'sortablejs'
 
 export const BasicAllProps: FC = props => {
@@ -53,21 +53,21 @@ export const BasicAllProps: FC = props => {
       scroll={true}
       // sortable-option methods
       onAdd={() => console.log('onAdd')}
-      onChange={() => console.log('onAdd')}
-      onClone={() => console.log('onAdd')}
-      onChoose={() => console.log('onAdd')}
-      onEnd={() => console.log('onAdd')}
-      onFilter={() => console.log('onAdd')}
+      onChange={() => console.log('onChange')}
+      onClone={() => console.log('onClone')}
+      onChoose={() => console.log('onChoose')}
+      onEnd={() => console.log('onEnd')}
+      onFilter={() => console.log('onFilter')}
       onMove={() => {
         console.log('onAdd')
         return true
       }}
-      onRemove={() => console.log('onAdd')}
-      onSort={() => console.log('onAdd')}
-      onSpill={() => console.log('onAdd')}
-      onStart={() => console.log('onAdd')}
-      onUnchoose={() => console.log('onAdd')}
-      onUpdate={() => console.log('onAdd')}
+      onRemove={() => console.log('onRemove')}
+      onSort={() => console.log('onSort')}
+      onSpill={() => console.log('onSpill')}
+      onStart={() => console.log('onStart')}
+      onUnchoose={() => console.log('onUnchoose')}
+      onUpdate={() => console.log('onUpdate')}
     >
       {state.map(item => (
         <div className="chosen draggable handle" key={item.id}>

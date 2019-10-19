@@ -212,7 +212,7 @@ export interface ReactSortableProps<T> extends ReactSortableOptions {
   /**
    * Parse the plugins you'd like to use in Sortable.
    */
-  plugins?: Sortable.Plugin<any> | Array<Sortable.Plugin<any>>
+  plugins?: Sortable.Plugin | Array<Sortable.Plugin>
 }
 
 /**
