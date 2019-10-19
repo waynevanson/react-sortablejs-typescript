@@ -68,7 +68,7 @@ export interface MultiDragOptions {
      */
     // todo: create a type
     // todo: check source code for type
-    multiDragKey?: null;
+    multiDragKey?: string;
 
     /**
      * Called when an item is selected
