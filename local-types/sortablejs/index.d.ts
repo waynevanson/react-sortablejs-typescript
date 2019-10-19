@@ -157,11 +157,11 @@ declare namespace Sortable {
     static pluginName: 'multiDrag'
   }
   // OPTIONS
-  export interface Options extends SortableOptions, OnSpillOptions, AutoScrollOptions {}
+  export interface Options extends SortableOptions, OnSpillOptions, AutoScrollOptions,MultiDragOptions {}
 
   type PullResult = ReadonlyArray<string> | boolean | 'clone'
   type PutResult = ReadonlyArray<string> | boolean
-  export interface Group {
+  export interface GroupOptions {
     /**
      * group name
      */
@@ -287,7 +287,7 @@ declare namespace Sortable {
      * To drag elements from one list into another, both lists must have the same group value.
      * You can also define whether lists can give away, give and keep a copy (clone), and receive elements.
      */
-    group?: string | Group
+    group?: string | GroupOptions
     /**
      * Drag handle selector within list items
      */
@@ -431,27 +431,27 @@ declare namespace Sortable {
     /**
      * Enable the plugin
      */
-    multiDrag: boolean
+    multiDrag?: boolean
     /**
      * Class name for selected item
      */
-    selectedClass: string
+    selectedClass?: string
     /**
      * Key that must be down for items to be selected
      */
     // todo: create a type
     // todo: check source code for type
-    multiDragKey: null
+    multiDragKey?: null
 
     /**
      * Called when an item is selected
      */
-    onSelect: (event: SortableEvent) => void
+    onSelect?: (event: SortableEvent) => void
 
     /**
      * Called when an item is deselected
      */
-    onDeselect: (event: SortableEvent) => void
+    onDeselect?: (event: SortableEvent) => void
   }
 
   // EVENTS
