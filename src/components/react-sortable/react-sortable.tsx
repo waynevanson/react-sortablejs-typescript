@@ -1,17 +1,21 @@
 import {
   Component,
-  createRef,
-  RefObject,
   createElement,
-  RefAttributes,
-  ForwardRefExoticComponent,
+  createRef,
   CSSProperties,
+  ForwardRefExoticComponent,
   ReactHTML,
-  Dispatch,
-  SetStateAction
-} from "react"
-import Sortable, { Options, SortableEvent } from "sortablejs"
-import { removeNode, insertNodeAt, destructurePropsForOptions } from "./util"
+  RefAttributes,
+  RefObject,
+  Dispatch
+} from 'react'
+import Sortable, { Options, SortableEvent } from 'sortablejs'
+import {
+  destructurePropsForOptions,
+  insertNodeAt,
+  removeNode,
+  addDataIDAttributeToChildren
+} from './util'
 
 // add option to store this in context, instead of here.
 const store: Store = { dragging: null }
@@ -29,10 +33,16 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     this.ref = createRef<HTMLElement>()
   }
 
+  /**
+   * Appends the `sortable` property to this component.
+   *
+   * Sortable initializes it's instance using `Sortable + new Date()`,
+   * which is why we have this funky logic
+   */
   private get sortable(): Sortable | null {
     const el = this.ref.current
     if (el === null) return null
-    const key = Object.keys(el).find(k => k.includes("Sortable"))
+    const key = Object.keys(el).find(k => k.includes('Sortable'))
     if (!key) return null
     //@ts-ignore
     return el[key]
@@ -50,11 +60,11 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   }
 
   render() {
-    const { tag, children, style, className } = this.props
+    const { tag, children, style, className, dataIdAttr } = this.props
     const classicProps = { style, className }
-    const tagCheck = !tag || tag === null ? "div" : tag
-    // todo: add data-id to children
-    return createElement(tagCheck, { ref: this.ref, ...classicProps }, children)
+    const tagCheck = !tag || tag === null ? 'div' : tag
+    const childrenWithDataID = addDataIDAttributeToChildren(children, dataIdAttr)
+    return createElement(tagCheck, { ref: this.ref, ...classicProps }, childrenWithDataID)
   }
 
   /**
@@ -79,7 +89,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     setList(newState, this.sortable, store)
   }
 
-  // Element is removed from the list into another list
+  /** Element is removed from the list into another list */
   onRemove(evt: SortableEvent) {
     const { item, from, oldIndex } = evt
     insertNodeAt(from, item, oldIndex!)
@@ -125,14 +135,20 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    * Append the props that are options into the options
    */
   makeOptions(): Options {
-    const removers: SortableMethodKeysReact[] = ["onAdd", "onUpdate", "onRemove", "onStart", "onEnd"]
+    const removers: SortableMethodKeysReact[] = [
+      'onAdd',
+      'onUpdate',
+      'onRemove',
+      'onStart',
+      'onEnd'
+    ]
     const norms: Exclude<SortableMethodKeysWithoutMove, SortableMethodKeysReact>[] = [
-      "onUnchoose",
-      "onChoose",
-      "onClone",
-      "onFilter",
-      "onSort",
-      "onChange"
+      'onUnchoose',
+      'onChoose',
+      'onClone',
+      'onFilter',
+      'onSort',
+      'onChange'
     ]
     const options = destructurePropsForOptions(this.props)
     const newOptions: Options = options
@@ -218,33 +234,41 @@ export interface Store {
  */
 type ReactSortableOptions = Omit<Options, SortableMethodKeys> &
   Partial<
-    Record<SortableMethodKeysWithoutMove, (evt: SortableEvent, sortable: Sortable | null, store: Store) => void>
+    Record<
+      SortableMethodKeysWithoutMove,
+      (evt: SortableEvent, sortable: Sortable | null, store: Store) => void
+    >
   > & {
-    onMove?: (evt: SortableEvent, originalEvent: Event, sortable: Sortable | null, store: Store) => boolean | -1 | 1
+    onMove?: (
+      evt: SortableEvent,
+      originalEvent: Event,
+      sortable: Sortable | null,
+      store: Store
+    ) => boolean | -1 | 1
   }
 
 // STRINGS
 
 /** All method names starting with `on` in `Sortable.Options` */
 export type SortableMethodKeys =
-  | "onAdd"
-  | "onChange"
-  | "onChoose"
-  | "onClone"
-  | "onEnd"
-  | "onFilter"
-  | "onMove"
-  | "onRemove"
-  | "onSort"
-  | "onSpill"
-  | "onStart"
-  | "onUnchoose"
-  | "onUpdate"
+  | 'onAdd'
+  | 'onChange'
+  | 'onChoose'
+  | 'onClone'
+  | 'onEnd'
+  | 'onFilter'
+  | 'onMove'
+  | 'onRemove'
+  | 'onSort'
+  | 'onSpill'
+  | 'onStart'
+  | 'onUnchoose'
+  | 'onUpdate'
 
 /** Method names that fire in `this`, when this is react-sortable */
-type SortableMethodKeysReact = "onAdd" | "onRemove" | "onUpdate" | "onStart" | "onEnd" | "onSpill"
+type SortableMethodKeysReact = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd' | 'onSpill'
 
 /**
  * Same as `SortableMethodKeys` type but with out the string `onMove`.
  */
-type SortableMethodKeysWithoutMove = Exclude<SortableMethodKeys, "onMove">
+type SortableMethodKeysWithoutMove = Exclude<SortableMethodKeys, 'onMove'>

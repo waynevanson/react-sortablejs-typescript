@@ -1,6 +1,17 @@
-import { Component } from 'react'
-import { ReactSortableProps, SortableMethodKeys } from '..'
+import { Children, cloneElement, Component, ReactNode, ReactElement } from 'react'
 import { Options } from 'sortablejs'
+import { ReactSortableProps, SortableMethodKeys } from '..'
+
+/**
+ * @summary adds the attribute `data-id` to children
+ * @param children
+ */
+export function addDataIDAttributeToChildren(children: ReactNode, dataIdAttr: string | undefined) {
+  if (!children || children == null) return null
+  return Children.map(children as ReactElement<any>[], (child: ReactElement) =>
+    cloneElement(child, { [dataIdAttr || 'data-id']: child.key })
+  )
+}
 
 /**
  * Removes the `node` from the DOM
@@ -10,11 +21,8 @@ export function removeNode(node: HTMLElement) {
   if (node.parentElement !== null) node.parentElement.removeChild(node)
 }
 
-// todo:
-// check how insert before works when refchild is undefined
-// as in `parent.children[0]`
 /**
- * Uses
+ * @summary Inserts a `newChild` inside the `parent` at index number `position`
  * @param parent
  * @param newChild
  * @param position a number that is not negative
