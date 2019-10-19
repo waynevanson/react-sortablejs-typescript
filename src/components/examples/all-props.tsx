@@ -1,7 +1,7 @@
 import React, { FC, useState, useRef } from 'react'
 import { Item } from '../__exclude__/react-sortable-nested'
 import { makeState } from './functions-and-styles'
-import { ReactSortable } from '../react-sortable'
+import { ReactSortable, } from '../react-sortable'
 import { MultiDrag } from 'sortablejs'
 
 export const BasicAllProps: FC = props => {
