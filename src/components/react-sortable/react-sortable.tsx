@@ -138,6 +138,15 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     newList.splice(oldIndex!, 1, newItem)
     setList(newList, this.sortable, store)
   }
+  onSelect(evt: SortableEvent) {
+    // append the class name the classe of the item
+    // do it on the item?
+    // a seperate state?
+    
+  }
+  onDeselect(evt: SortableEvent) {
+    // remove the clast name of the child
+  }
 
   /**
    * Append the props that are options into the options
@@ -291,9 +300,19 @@ export type AllMethodNames =
   | 'onStart'
   | 'onUnchoose'
   | 'onUpdate'
+  | 'onSelect'
+  | 'onDeselect'
 
 /** Method names that fire in `this`, when this is react-sortable */
-type HandledMethodNames = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd' | 'onSpill'
+type HandledMethodNames =
+  | 'onAdd'
+  | 'onRemove'
+  | 'onUpdate'
+  | 'onStart'
+  | 'onEnd'
+  | 'onSpill'
+  | 'onSelect'
+  | 'onDeselect'
 type UnHandledMethodNames = Exclude<AllMethodsExceptMove, HandledMethodNames | 'onMove'>
 /**
  * Same as `SortableMethodKeys` type but with out the string `onMove`.

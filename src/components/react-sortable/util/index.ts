@@ -65,6 +65,8 @@ export function destructurePropsForOptions<T>(
     onUpdate,
     onMove,
     onSpill,
+    onSelect,
+    onDeselect,
     ...options
   } = props
   return options
