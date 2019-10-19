@@ -9,7 +9,7 @@ import {
   RefObject,
   Dispatch
 } from 'react'
-import Sortable, { Options, SortableEvent } from 'sortablejs'
+import Sortable, { Options, SortableEvent, MoveEvent } from 'sortablejs'
 import {
   destructurePropsForOptions,
   insertNodeAt,
@@ -140,7 +140,8 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
       'onUpdate',
       'onRemove',
       'onStart',
-      'onEnd'
+      'onEnd',
+      'onSpill'
     ]
     const norms: Exclude<SortableMethodKeysWithoutMove, SortableMethodKeysReact>[] = [
       'onUnchoose',
@@ -150,14 +151,18 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
       'onSort',
       'onChange'
     ]
-    const options = destructurePropsForOptions(this.props)
-    const newOptions: Options = options
+    const newOptions: Options = destructurePropsForOptions(this.props)
     removers.forEach(name => (newOptions[name] = this.callbacksWithOnEvent(name)))
     norms.forEach(name => (newOptions[name] = this.callbacks(name)))
-    // todo: add `onMove`. Types are cooked on this one not sure why...
-    // todo: add `onSpill` methods and DOM changes
     return {
-      ...newOptions
+      ...newOptions,
+      // We are altering the behavoiur here.
+      onMove: (evt, originalEvt) => {
+        const { onMove } = this.props
+        const defaultValue = evt.willInsertAfter || -1
+        if (!onMove) return defaultValue
+        return onMove(evt, originalEvt, this.sortable, store) || defaultValue
+      }
     }
   }
 
@@ -239,12 +244,19 @@ type ReactSortableOptions = Omit<Options, SortableMethodKeys> &
       (evt: SortableEvent, sortable: Sortable | null, store: Store) => void
     >
   > & {
+    /**
+     * The default sortable behaviour has been changed.
+     * 
+     * If the return value is void, then the defaults will kick in.
+     * it saves the user trying to figure it out.
+     * and they can just use onmove as a callback value
+     */
     onMove?: (
-      evt: SortableEvent,
+      evt: MoveEvent,
       originalEvent: Event,
       sortable: Sortable | null,
       store: Store
-    ) => boolean | -1 | 1
+    ) => boolean | -1 | 1 | void
   }
 
 // STRINGS

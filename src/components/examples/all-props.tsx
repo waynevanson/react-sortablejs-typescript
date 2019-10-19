@@ -48,8 +48,8 @@ export const BasicAllProps: FC = props => {
       preventOnFilter={false}
       ref={ref}
       removeCloneOnHide={false}
-      removeOnSpill={false}
-      revertOnSpill={true}
+      removeOnSpill={true}
+      // revertOnSpill={true}
       scroll={true}
       // sortable-option methods
       onAdd={() => console.log('onAdd')}
@@ -58,9 +58,8 @@ export const BasicAllProps: FC = props => {
       onChoose={() => console.log('onChoose')}
       onEnd={() => console.log('onEnd')}
       onFilter={() => console.log('onFilter')}
-      onMove={() => {
-        console.log('onMove')
-        return false
+      onMove={evt => {
+        console.log('onMove', evt.willInsertAfter)
       }}
       onRemove={() => console.log('onRemove')}
       onSort={() => console.log('onSort')}
