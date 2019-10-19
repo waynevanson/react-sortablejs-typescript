@@ -1,6 +1,6 @@
 import { Children, cloneElement, Component, ReactNode, ReactElement } from 'react'
 import { Options } from 'sortablejs'
-import { ReactSortableProps, SortableMethodKeys } from '..'
+import { ReactSortableProps, AllMethodNames } from '..'
 
 /**
  * @summary adds the attribute `data-id` to children
@@ -42,7 +42,7 @@ export function insertNodeAt(parent: HTMLElement, newChild: HTMLElement, positio
  */
 export function destructurePropsForOptions<T>(
   props: Component<ReactSortableProps<T>, {}, any>['props']
-): Exclude<Options, SortableMethodKeys> {
+): Exclude<Options, AllMethodNames> {
   const {
     // react sortable props
     list,

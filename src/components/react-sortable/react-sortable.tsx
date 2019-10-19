@@ -72,7 +72,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    * @param evt
    * @param evtName
    */
-  triggerOnElse(evt: SortableEvent, evtName: SortableMethodKeysWithoutMove) {
+  triggerOnElse(evt: SortableEvent, evtName: AllMethodsExceptMove) {
     const propEvent = this.props[evtName]
     if (propEvent) propEvent(evt, this.sortable, store)
   }
@@ -128,14 +128,22 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     const { removeOnSpill, revertOnSpill } = this.props
     if (removeOnSpill && !revertOnSpill) removeNode(evt.item)
   }
-
-  onClone(evt: SortableEvent) {}
+  /** replace the item in place */
+  onClone(evt: SortableEvent) {
+    const { clone, list, setList } = this.props
+    if (!clone) throw new Error('please use the clone function')
+    const { oldIndex } = evt
+    const newList = [...list]
+    const newItem = clone(list[oldIndex!], evt)
+    newList.splice(oldIndex!, 1, newItem)
+    setList(newList, this.sortable, store)
+  }
 
   /**
    * Append the props that are options into the options
    */
   makeOptions(): Options {
-    const removers: SortableMethodKeysReact[] = [
+    const DOMHandlers: HandledMethodNames[] = [
       'onAdd',
       'onUpdate',
       'onRemove',
@@ -143,7 +151,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
       'onEnd',
       'onSpill'
     ]
-    const norms: Exclude<SortableMethodKeysWithoutMove, SortableMethodKeysReact>[] = [
+    const NonDOMHandlers: UnHandledMethodNames[] = [
       'onUnchoose',
       'onChoose',
       'onClone',
@@ -152,11 +160,10 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
       'onChange'
     ]
     const newOptions: Options = destructurePropsForOptions(this.props)
-    removers.forEach(name => (newOptions[name] = this.callbacksWithOnEvent(name)))
-    norms.forEach(name => (newOptions[name] = this.callbacks(name)))
+    DOMHandlers.forEach(name => (newOptions[name] = this.callbacksWithOnEvent(name)))
+    NonDOMHandlers.forEach(name => (newOptions[name] = this.callbacks(name)))
     return {
       ...newOptions,
-      // We are altering the behavoiur here.
       onMove: (evt, originalEvt) => {
         const { onMove } = this.props
         const defaultValue = evt.willInsertAfter || -1
@@ -171,7 +178,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
    * triggers one of the `ReactSortable` internal methods
    * when a sortable method is triggered
    */
-  callbacksWithOnEvent(evtName: SortableMethodKeysReact) {
+  callbacksWithOnEvent(evtName: HandledMethodNames) {
     return (evt: SortableEvent) => {
       // call the component prop
       this.triggerOnElse(evt, evtName)
@@ -183,7 +190,7 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   /**
    * Returns a function that triggers when a sortable method is triggered
    */
-  callbacks(evtName: Exclude<SortableMethodKeysWithoutMove, SortableMethodKeysReact>) {
+  callbacks(evtName: Exclude<AllMethodsExceptMove, HandledMethodNames>) {
     return (evt: SortableEvent) => {
       // call the component prop
       this.triggerOnElse(evt, evtName)
@@ -218,6 +225,14 @@ export interface ReactSortableProps<T> extends ReactSortableOptions {
    * Parse the plugins you'd like to use in Sortable.
    */
   plugins?: Sortable.Plugin | Array<Sortable.Plugin>
+  /**
+   * If this is provided, the function will replace the clone in place.
+   *
+   * When an is moved from `A` to `B` with `pull: 'clone'`,
+   * the original element will be moved to `B`
+   * and the new clone will be placed in `A`
+   */
+  clone?: (currentItem: T, evt: SortableEvent) => T
 }
 
 /**
@@ -237,16 +252,16 @@ export interface Store {
  * Change the `on[...]` methods in Sortable.Options,
  * so that they all have an extra arg that is `store: Store`
  */
-type ReactSortableOptions = Omit<Options, SortableMethodKeys> &
+type ReactSortableOptions = Omit<Options, AllMethodNames> &
   Partial<
     Record<
-      SortableMethodKeysWithoutMove,
+      AllMethodsExceptMove,
       (evt: SortableEvent, sortable: Sortable | null, store: Store) => void
     >
   > & {
     /**
      * The default sortable behaviour has been changed.
-     * 
+     *
      * If the return value is void, then the defaults will kick in.
      * it saves the user trying to figure it out.
      * and they can just use onmove as a callback value
@@ -262,7 +277,7 @@ type ReactSortableOptions = Omit<Options, SortableMethodKeys> &
 // STRINGS
 
 /** All method names starting with `on` in `Sortable.Options` */
-export type SortableMethodKeys =
+export type AllMethodNames =
   | 'onAdd'
   | 'onChange'
   | 'onChoose'
@@ -278,9 +293,9 @@ export type SortableMethodKeys =
   | 'onUpdate'
 
 /** Method names that fire in `this`, when this is react-sortable */
-type SortableMethodKeysReact = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd' | 'onSpill'
-
+type HandledMethodNames = 'onAdd' | 'onRemove' | 'onUpdate' | 'onStart' | 'onEnd' | 'onSpill'
+type UnHandledMethodNames = Exclude<AllMethodsExceptMove, HandledMethodNames | 'onMove'>
 /**
  * Same as `SortableMethodKeys` type but with out the string `onMove`.
  */
-type SortableMethodKeysWithoutMove = Exclude<SortableMethodKeys, 'onMove'>
+type AllMethodsExceptMove = Exclude<AllMethodNames, 'onMove'>

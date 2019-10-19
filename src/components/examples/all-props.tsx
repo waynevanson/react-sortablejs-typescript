@@ -3,6 +3,7 @@ import { Item } from '../__exclude__/react-sortable-nested'
 import { makeState } from './functions-and-styles'
 import { ReactSortable } from '../react-sortable'
 import { MultiDrag } from 'sortablejs'
+import uniqueId from 'lodash.uniqueid'
 
 export const BasicAllProps: FC = props => {
   const [state, setState] = useState<Item[]>(makeState)
@@ -48,8 +49,8 @@ export const BasicAllProps: FC = props => {
       preventOnFilter={false}
       ref={ref}
       removeCloneOnHide={false}
-      removeOnSpill={true}
-      // revertOnSpill={true}
+      removeOnSpill={false}
+      revertOnSpill={true}
       scroll={true}
       // sortable-option methods
       onAdd={() => console.log('onAdd')}
@@ -67,6 +68,7 @@ export const BasicAllProps: FC = props => {
       onStart={() => console.log('onStart')}
       onUnchoose={() => console.log('onUnchoose')}
       onUpdate={() => console.log('onUpdate')}
+      clone={oldItem => ({ ...oldItem, id: uniqueId() })}
     >
       {state.map(item => (
         <div className="chosen draggable handle" key={item.id}>
