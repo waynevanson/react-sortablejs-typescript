@@ -59,8 +59,8 @@ export const BasicAllProps: FC = props => {
       onEnd={() => console.log('onEnd')}
       onFilter={() => console.log('onFilter')}
       onMove={() => {
-        console.log('onAdd')
-        return true
+        console.log('onMove')
+        return false
       }}
       onRemove={() => console.log('onRemove')}
       onSort={() => console.log('onSort')}
