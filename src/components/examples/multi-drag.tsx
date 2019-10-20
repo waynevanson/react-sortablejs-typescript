@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { ReactSortable, MultiDrag } from '../react-sortable'
-import './multidrag.css'
+import styled from 'styled-components'
+import { MultiDrag, ReactSortable } from '../react-sortable'
 
 export function MultiDragComponent() {
   const [state, setState] = useState([
@@ -10,10 +10,9 @@ export function MultiDragComponent() {
   ])
   return (
     <ReactSortable
-      selectedClass="selected-class"
       animation={100}
       group="penis"
-      multiDragKey="ctrl"
+      multiDragKey="control"
       multiDrag
       tag="div"
       list={state}
@@ -21,8 +20,18 @@ export function MultiDragComponent() {
       plugins={new MultiDrag()}
     >
       {state.map(item => (
-        <div style={{padding: '20px'}} key={item.id}>{item.name}</div>
+        <MyItem style={{ padding: '20px' }} key={item.id}>
+          {item.name}
+        </MyItem>
       ))}
     </ReactSortable>
   )
 }
+
+const MyItem = styled.div`
+  background-color: #ccc;
+  padding: 0.5rem;
+  &.sortable-selected {
+    background-color: #ffaaaa;
+  }
+`

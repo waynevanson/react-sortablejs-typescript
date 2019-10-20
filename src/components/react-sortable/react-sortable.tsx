@@ -1,30 +1,15 @@
-import {
-  Component,
-  createElement,
-  createRef,
-  CSSProperties,
-  ForwardRefExoticComponent,
-  ReactHTML,
-  RefAttributes,
-  RefObject,
-  Dispatch
-} from 'react'
-import Sortable, { Options, SortableEvent, MoveEvent } from 'sortablejs'
-import {
-  destructurePropsForOptions,
-  insertNodeAt,
-  removeNode,
-  addDataIDAttributeToChildren
-} from './util'
+import { Component, createElement, createRef, ReactNode, RefObject } from 'react'
+import Sortable, { Options, SortableEvent } from 'sortablejs'
+import { AllMethodsExceptMove, HandledMethodNames, ReactSortableProps, Store, UnHandledMethodNames } from './types'
+import { destructurePropsForOptions, insertNodeAt, modifyChildren, removeNode } from './util'
 
-// add option to store this in context, instead of here.
+/** Holds a global reference for which react element is being dragged */
 const store: Store = { dragging: null }
 
 /**
  * A component for making the first layer of children sortable,
  * using `SortableJS` to manipulate the DOM.
  */
-// todo: clone function from props
 export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   private ref: RefObject<HTMLElement>
 
@@ -33,26 +18,11 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     this.ref = createRef<HTMLElement>()
   }
 
-  /**
-   * Appends the `sortable` property to this component.
-   *
-   * Sortable initializes it's instance using `Sortable + new Date()`,
-   * which is why we have this funky logic
-   */
-  private get sortable(): Sortable | null {
-    const el = this.ref.current
-    if (el === null) return null
-    const key = Object.keys(el).find(k => k.includes('Sortable'))
-    if (!key) return null
-    //@ts-ignore
-    return el[key]
-  }
-
   componentDidMount() {
     if (this.ref.current === null) return
     const newOptions = this.makeOptions()
     Sortable.create(this.ref.current, newOptions)
-    // mount plugins if parsed
+    // mount plugins if any
     const { plugins } = this.props
     if (!plugins) return
     if (plugins instanceof Array) Sortable.mount(...plugins)
@@ -60,97 +30,24 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   }
 
   render() {
-    const { tag, children, style, className, dataIdAttr } = this.props
+    const { tag, style, className } = this.props
     const classicProps = { style, className }
     const tagCheck = !tag || tag === null ? 'div' : tag
-    const childrenWithDataID = addDataIDAttributeToChildren(children, dataIdAttr)
-    return createElement(tagCheck, { ref: this.ref, ...classicProps }, childrenWithDataID)
+    const newChildren: ReactNode = modifyChildren(this.props)
+    return createElement(tagCheck, { ref: this.ref, ...classicProps }, newChildren)
   }
 
-  /**
-   * Calls the `props.on[add | start | ...etc]` function
-   * @param evt
-   * @param evtName
-   */
-  triggerOnElse(evt: SortableEvent, evtName: AllMethodsExceptMove) {
-    const propEvent = this.props[evtName]
-    if (propEvent) propEvent(evt, this.sortable, store)
+  /** Appends the `sortable` property to this component */
+  private get sortable(): Sortable | null {
+    const el = this.ref.current
+    if (el === null) return null
+    const key = Object.keys(el).find(k => k.includes('Sortable'))
+    if (!key) return null
+    //@ts-ignore - I know what I'm doing.
+    return el[key]
   }
 
-  // Element is dropped into the list from another list
-  onAdd(evt: SortableEvent) {
-    const { list, setList } = this.props
-    // remove from this list,
-    removeNode(evt.item)
-    // add item to the `props.state`
-    const newState: T[] = [...list]
-    const newItem = store.dragging!.props.list[evt.oldIndex!]
-    newState.splice(evt.newIndex!, 0, newItem)
-    setList(newState, this.sortable, store)
-  }
-
-  /** Element is removed from the list into another list */
-  onRemove(evt: SortableEvent) {
-    const { item, from, oldIndex } = evt
-    insertNodeAt(from, item, oldIndex!)
-    const { list, setList } = this.props
-
-    // remove item in the `props.state`fromComponent
-    const newState: T[] = [...list]
-    newState.splice(oldIndex!, 1)
-    setList(newState, this.sortable, store)
-  }
-
-  // Changed sorting within list
-  // basically the add and remove for actions in the same list
-  onUpdate(evt: SortableEvent) {
-    removeNode(evt.item)
-    insertNodeAt(evt.from, evt.item, evt.oldIndex!)
-
-    const { list, setList } = this.props
-
-    // remove and add items to the `props.state`
-    const newState: T[] = [...list]
-    const [oldItem] = newState.splice(evt.oldIndex!, 1)
-    newState.splice(evt.newIndex!, 0, oldItem)
-    setList(newState, this.sortable, store)
-  }
-
-  onStart(evt: SortableEvent) {
-    store.dragging = this
-  }
-
-  onEnd(evt: SortableEvent) {
-    store.dragging = null
-  }
-
-  onSpill(evt: SortableEvent) {
-    const { removeOnSpill, revertOnSpill } = this.props
-    if (removeOnSpill && !revertOnSpill) removeNode(evt.item)
-  }
-  /** replace the item in place */
-  onClone(evt: SortableEvent) {
-    const { clone, list, setList } = this.props
-    if (!clone) throw new Error('please use the clone function')
-    const { oldIndex } = evt
-    const newList = [...list]
-    const newItem = clone(list[oldIndex!], evt)
-    newList.splice(oldIndex!, 1, newItem)
-    setList(newList, this.sortable, store)
-  }
-  onSelect(evt: SortableEvent) {
-    // append the class name the classe of the item
-    // do it on the item?
-    // a seperate state?
-    
-  }
-  onDeselect(evt: SortableEvent) {
-    // remove the clast name of the child
-  }
-
-  /**
-   * Append the props that are options into the options
-   */
+  /** Converts all the props from `ReactSortable` into an object that `Sortable.create(el, [options])` can use */
   makeOptions(): Options {
     const DOMHandlers: HandledMethodNames[] = [
       'onAdd',
@@ -158,19 +55,19 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
       'onRemove',
       'onStart',
       'onEnd',
-      'onSpill'
+      'onSpill',
+      'onClone'
     ]
     const NonDOMHandlers: UnHandledMethodNames[] = [
       'onUnchoose',
       'onChoose',
-      'onClone',
       'onFilter',
       'onSort',
       'onChange'
     ]
     const newOptions: Options = destructurePropsForOptions(this.props)
-    DOMHandlers.forEach(name => (newOptions[name] = this.callbacksWithOnEvent(name)))
-    NonDOMHandlers.forEach(name => (newOptions[name] = this.callbacks(name)))
+    DOMHandlers.forEach(name => (newOptions[name] = this.prepareOnHandlerPropAndDOM(name)))
+    NonDOMHandlers.forEach(name => (newOptions[name] = this.prepareOnHandlerProp(name)))
     return {
       ...newOptions,
       onMove: (evt, originalEvt) => {
@@ -182,139 +79,96 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     }
   }
 
-  /**
-   * Returns a function that
-   * triggers one of the `ReactSortable` internal methods
-   * when a sortable method is triggered
-   */
-  callbacksWithOnEvent(evtName: HandledMethodNames) {
+  /** Prepares a method that will be used in the sortable options to call an `on[Handler]` prop & an `on[Handler]` ReactSortable method  */
+  prepareOnHandlerPropAndDOM(evtName: HandledMethodNames) {
     return (evt: SortableEvent) => {
       // call the component prop
-      this.triggerOnElse(evt, evtName)
+      this.callOnHandlerProp(evt, evtName)
       // calls state change
       this[evtName](evt)
     }
   }
 
-  /**
-   * Returns a function that triggers when a sortable method is triggered
-   */
-  callbacks(evtName: Exclude<AllMethodsExceptMove, HandledMethodNames>) {
+  /** Prepares a method that will be used in the sortable options to call an `on[Handler]` prop */
+  prepareOnHandlerProp(evtName: Exclude<AllMethodsExceptMove, HandledMethodNames>) {
     return (evt: SortableEvent) => {
       // call the component prop
-      this.triggerOnElse(evt, evtName)
+      this.callOnHandlerProp(evt, evtName)
     }
   }
-}
 
-//
-// TYPES
-//
-export interface ReactSortableProps<T> extends ReactSortableOptions {
-  /**
-   * The list of items to use.
-   */
-  list: T[]
-  /**
-   * Sets the state for your list of items.
-   */
-  setList: (newState: T[], sortable: Sortable | null, store: Store) => void
-  /**
-   * If parsing in a component WITHOUT a ref, an error will be thrown.
-   *
-   * To fix this, use the `forwardRef` component.
-   *
-   * @example
-   * forwardRef<HTMLElement, YOURPROPS>((props, ref) => <button {...props} ref={ref} />)
-   */
-  tag?: ForwardRefExoticComponent<RefAttributes<any>> | keyof ReactHTML
-  style?: CSSProperties
-  className?: string
-  /**
-   * Parse the plugins you'd like to use in Sortable.
-   */
-  plugins?: Sortable.Plugin | Array<Sortable.Plugin>
-  /**
-   * If this is provided, the function will replace the clone in place.
-   *
-   * When an is moved from `A` to `B` with `pull: 'clone'`,
-   * the original element will be moved to `B`
-   * and the new clone will be placed in `A`
-   */
-  clone?: (currentItem: T, evt: SortableEvent) => T
-}
-
-/**
- * Used as
- */
-export interface Store {
-  dragging: null | ReactSortable<any>
-}
-
-//
-// TYPES FOR METHODS
-//
-
-// OPTIONS
-
-/**
- * Change the `on[...]` methods in Sortable.Options,
- * so that they all have an extra arg that is `store: Store`
- */
-type ReactSortableOptions = Omit<Options, AllMethodNames> &
-  Partial<
-    Record<
-      AllMethodsExceptMove,
-      (evt: SortableEvent, sortable: Sortable | null, store: Store) => void
-    >
-  > & {
-    /**
-     * The default sortable behaviour has been changed.
-     *
-     * If the return value is void, then the defaults will kick in.
-     * it saves the user trying to figure it out.
-     * and they can just use onmove as a callback value
-     */
-    onMove?: (
-      evt: MoveEvent,
-      originalEvent: Event,
-      sortable: Sortable | null,
-      store: Store
-    ) => boolean | -1 | 1 | void
+  /** Calls the `props.on[Handler]` function */
+  callOnHandlerProp(evt: SortableEvent, evtName: AllMethodsExceptMove) {
+    const propEvent = this.props[evtName]
+    if (propEvent) propEvent(evt, this.sortable, store)
   }
 
-// STRINGS
+  /** Called when an element is dropped into the list from another list */
+  onAdd(evt: SortableEvent) {
+    const { list, setList } = this.props
+    removeNode(evt.item)
+    const newState: T[] = [...list]
+    const newItem = store.dragging!.props.list[evt.oldIndex!]
+    newState.splice(evt.newIndex!, 0, newItem)
+    setList(newState, this.sortable, store)
+  }
 
-/** All method names starting with `on` in `Sortable.Options` */
-export type AllMethodNames =
-  | 'onAdd'
-  | 'onChange'
-  | 'onChoose'
-  | 'onClone'
-  | 'onEnd'
-  | 'onFilter'
-  | 'onMove'
-  | 'onRemove'
-  | 'onSort'
-  | 'onSpill'
-  | 'onStart'
-  | 'onUnchoose'
-  | 'onUpdate'
-  | 'onSelect'
-  | 'onDeselect'
+  /** Called when an element is removed from the list into another list */
+  onRemove(evt: SortableEvent) {
+    const { item, from, oldIndex } = evt
+    insertNodeAt(from, item, oldIndex!)
+    const { list, setList } = this.props
+    const newState: T[] = [...list]
+    newState.splice(oldIndex!, 1)
+    setList(newState, this.sortable, store)
+  }
 
-/** Method names that fire in `this`, when this is react-sortable */
-type HandledMethodNames =
-  | 'onAdd'
-  | 'onRemove'
-  | 'onUpdate'
-  | 'onStart'
-  | 'onEnd'
-  | 'onSpill'
-  | 'onSelect'
-  | 'onDeselect'
-type UnHandledMethodNames = Exclude<AllMethodsExceptMove, HandledMethodNames | 'onMove'>
-/**
- * Same as `SortableMethodKeys` type but with out the string `onMove`.
- */
-type AllMethodsExceptMove = Exclude<AllMethodNames, 'onMove'>
+  /** Called when sorting is changed within the same list */
+  onUpdate(evt: SortableEvent) {
+    const { item, from, oldIndex, newIndex } = evt
+    removeNode(item)
+    insertNodeAt(from, item, oldIndex!)
+
+    const { list, setList } = this.props
+    const newState: T[] = [...list]
+    const [oldItem] = newState.splice(oldIndex!, 1)
+    newState.splice(newIndex!, 0, oldItem)
+    setList(newState, this.sortable, store)
+  }
+
+  /** Called when the dragging starts */
+  onStart(evt: SortableEvent) {
+    store.dragging = this
+  }
+
+  /** Called when the dragging ends */
+  onEnd(evt: SortableEvent) {
+    store.dragging = null
+  }
+
+  /** Called when the `onSpill` plugin is activated */
+  onSpill(evt: SortableEvent) {
+    const { removeOnSpill, revertOnSpill } = this.props
+    if (removeOnSpill && !revertOnSpill) removeNode(evt.item)
+  }
+
+  /** Called when a clone is made. It replaces an element in with a function */
+  onClone(evt: SortableEvent) {
+    const { clone, list, setList } = this.props
+    const { oldIndex } = evt
+    if (!clone)
+      throw new Error(`Please provide a valid function to the 'clone' prop in ReactSortable`)
+    const newList = [...list]
+    const newItem = clone(list[oldIndex!], evt)
+    newList.splice(oldIndex!, 1, newItem)
+    setList(newList, this.sortable, store)
+  }
+  onSelect(evt: SortableEvent) {
+    // append the class name the classe of the item
+    // do it on the item?
+    // a seperate state?
+  }
+  onDeselect(evt: SortableEvent) {
+    // remove the clast name of the child
+  }
+}

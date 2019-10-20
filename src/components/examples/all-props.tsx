@@ -49,8 +49,6 @@ export const BasicAllProps: FC = props => {
       preventOnFilter={false}
       ref={ref}
       removeCloneOnHide={false}
-      removeOnSpill={false}
-      revertOnSpill={true}
       scroll={true}
       // sortable-option methods
       onAdd={() => console.log('onAdd')}

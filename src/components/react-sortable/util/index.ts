@@ -1,4 +1,11 @@
-import { Children, cloneElement, Component, ReactNode, ReactElement } from 'react'
+import {
+  Children,
+  cloneElement,
+  Component,
+  ReactNode,
+  ReactElement,
+  PropsWithChildren
+} from 'react'
 import { Options } from 'sortablejs'
 import { ReactSortableProps, AllMethodNames } from '..'
 
@@ -6,10 +13,14 @@ import { ReactSortableProps, AllMethodNames } from '..'
  * @summary adds the attribute `data-id` to children
  * @param children
  */
-export function addDataIDAttributeToChildren(children: ReactNode, dataIdAttr: string | undefined) {
+export function modifyChildren<T>(props: PropsWithChildren<ReactSortableProps<T>>) {
+  const { children, dataIdAttr } = props
+
   if (!children || children == null) return null
-  return Children.map(children as ReactElement<any>[], (child: ReactElement) =>
-    cloneElement(child, { [dataIdAttr || 'data-id']: child.key })
+  return Children.map(children as ReactElement<any>[], (child: ReactElement, index) =>
+    cloneElement(child, {
+      [dataIdAttr || 'data-id']: child.key
+    })
   )
 }
 
@@ -41,7 +52,7 @@ export function insertNodeAt(parent: HTMLElement, newChild: HTMLElement, positio
  * @param props `ReactSortable.Props`
  */
 export function destructurePropsForOptions<T>(
-  props: Component<ReactSortableProps<T>, {}, any>['props']
+  props: PropsWithChildren<ReactSortableProps<T>>
 ): Exclude<Options, AllMethodNames> {
   const {
     // react sortable props
@@ -51,6 +62,7 @@ export function destructurePropsForOptions<T>(
     tag,
     style,
     className,
+    clone,
     // sortable options that have methods we want to overwrite
     onAdd,
     onChange,
