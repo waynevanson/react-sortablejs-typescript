@@ -1,7 +1,14 @@
 import { Component, createElement, createRef, ReactNode, RefObject } from 'react'
 import Sortable, { Options, SortableEvent } from 'sortablejs'
-import { AllMethodsExceptMove, HandledMethodNames, ReactSortableProps, Store, UnHandledMethodNames } from './types'
+import {
+  AllMethodsExceptMove,
+  HandledMethodNames,
+  ReactSortableProps,
+  Store,
+  UnHandledMethodNames
+} from './types'
 import { destructurePropsForOptions, insertNodeAt, modifyChildren, removeNode } from './util'
+import { throwStatement } from '@babel/types'
 
 /** Holds a global reference for which react element is being dragged */
 const store: Store = { dragging: null }
@@ -115,8 +122,9 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
 
   /** Called when an element is removed from the list into another list */
   onRemove(evt: SortableEvent) {
-    const { item, from, oldIndex } = evt
+    const { item, from, oldIndex, clone, pullMode } = evt
     insertNodeAt(from, item, oldIndex!)
+    if (pullMode === 'clone') return removeNode(clone)
     const { list, setList } = this.props
     const newState: T[] = [...list]
     newState.splice(oldIndex!, 1)
@@ -153,18 +161,10 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   }
 
   /** Called when a clone is made. It replaces an element in with a function */
-  onClone(evt: SortableEvent) {
-    const { clone, list, setList } = this.props
-    const { oldIndex } = evt
-    if (!clone)
-      throw new Error(`Please provide a valid function to the 'clone' prop in ReactSortable`)
-    const newList = [...list]
-    const newItem = clone(list[oldIndex!], evt)
-    newList.splice(oldIndex!, 1, newItem)
-    setList(newList, this.sortable, store)
-  }
+  // are we in the same list? if so, do nothing
+  onClone(evt: SortableEvent) {}
   onSelect(evt: SortableEvent) {
-    // append the class name the classe of the item
+    // append the class name the classes of the item
     // do it on the item?
     // a seperate state?
   }

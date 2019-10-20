@@ -1,12 +1,11 @@
-import React, { FC, useState, useRef } from 'react'
-import { Item } from '../__exclude__/react-sortable-nested'
-import { makeState } from './functions-and-styles'
-import { ReactSortable } from '../react-sortable'
-import { MultiDrag } from 'sortablejs'
 import uniqueId from 'lodash.uniqueid'
+import React, { FC, useRef, useState } from 'react'
+import { MultiDrag } from 'sortablejs'
+import { ReactSortable } from '../react-sortable'
+import { makeState } from './functions-and-styles'
 
 export const BasicAllProps: FC = props => {
-  const [state, setState] = useState<Item[]>(makeState)
+  const [state, setState] = useState<any[]>(makeState)
   const ref = useRef(null)
   return (
     <ReactSortable

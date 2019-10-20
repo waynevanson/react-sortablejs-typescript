@@ -1,13 +1,6 @@
-import {
-  Children,
-  cloneElement,
-  Component,
-  ReactNode,
-  ReactElement,
-  PropsWithChildren
-} from 'react'
+import { Children, cloneElement, PropsWithChildren, ReactElement } from 'react'
 import { Options } from 'sortablejs'
-import { ReactSortableProps, AllMethodNames } from '..'
+import { AllMethodNames, ReactSortableProps } from '../types'
 
 /**
  * @summary adds the attribute `data-id` to children

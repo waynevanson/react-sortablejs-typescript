@@ -29,6 +29,5 @@
   "exclude": [
     "node_modules",
     "__tests__",
-    "__exclude__"
   ]
 }
