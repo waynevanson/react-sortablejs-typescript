@@ -5,11 +5,17 @@
 //                 Wayne Van Son <https://github.com/waynevanson>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.1
-
-// todo:
-// tests
-// more plugins
-// more plugin options
+import {
+  AutoScrollOptions,
+  MultiDragOptions,
+  OnSpillOptions,
+  SwapOptions,
+  AutoScrollPlugin,
+  MultiDragPlugin,
+  OnSpillPlugin,
+  SwapPlugin,
+  SortablePlugin
+} from './plugins'
 
 export = Sortable
 
@@ -28,17 +34,21 @@ declare class Sortable {
   static utils: Sortable.Utils
 
   /**
+   * Mounts a plugin to Sortable
+   * @param sortablePlugin a sortable plugin.
+   *
+   * @example
+   *
+   * Sortable.mount(new MultiDrag(), new AutoScroll())
+   */
+  static mount(...sortablePlugins: SortablePlugin[]): void
+
+  /**
    * Creation of new instances.
    * @param element Any variety of HTMLElement.
    * @param options Sortable options object.
    */
-  static create(element: HTMLElement, options: Sortable.Options): Sortable
-
-  /**
-   * Mounts a plugin to the `Sortable`
-   * @param plugins One or more of the sortable plugins.
-   */
-  static mount(...plugins: Sortable.Plugin<any>[]): void
+  static create(element: HTMLElement, options?: Sortable.Options): Sortable
 
   /**
    * Options getter/setter
@@ -77,91 +87,74 @@ declare class Sortable {
   toArray(): string[]
 }
 
-// all options
-
 declare namespace Sortable {
-  /**
-   * Use to create a plugin in SortableJS
-   *
-   * https://github.com/SortableJS/Sortable/blob/master/plugins/README.md
-   */
-  // todo: research implementation of creating plugins, to allow inference of types
-  class Plugin<O extends Object> {
-    /**
-     *
-     * @param sortable
-     * @param el
-     * @param options
-     *
-     */
-    constructor(sortable?: Sortable, el?: HTMLElement, options?: O)
+  interface Options
+    extends SortableOptions,
+      AutoScrollOptions,
+      MultiDragOptions,
+      OnSpillOptions,
+      SwapOptions {}
 
-    /**
-     * Required. The name of the plugin
-     */
-    static pluginName: string
+  class Plugin extends SortablePlugin {}
 
-    static utils?: Object
-    static eventOptions(eventName: string): Function
-    static initializeByDefault: boolean
-    static optionListeners: Options & { [key: string]: any }
-    /**
-     * https://github.com/SortableJS/Sortable/blob/master/plugins/README.md#plugin-options
-     */
-    defaults?: Options & O
-    /**
-     * https://github.com/SortableJS/Sortable/blob/master/plugins/README.md#plugin-options
-     */
-    sortable: Sortable
-    options: Options & O & { [key: string]: any }
-    /**
-     * Is this correct?
-     *
-     * https://github.com/SortableJS/Sortable/blob/master/plugins/README.md#event-list
-     */
-    filter(evt: SortablePluginEvent): void
-    delayStart(evt: SortablePluginEvent): void
-    delayEnded(evt: SortablePluginEvent): void
-    setupClone(evt: SortablePluginEvent): void
+  class AutoScroll extends AutoScrollPlugin {}
+  class MultiDrag extends MultiDragPlugin {}
+  class OnSpill extends OnSpillPlugin {}
+  class Swap extends SwapPlugin {}
 
-    dragStart(evt: SortablePluginEvent): void
-    clone(evt: SortablePluginEvent): void
-    dragStarted(evt: SortablePluginEvent): void
-    dragOver(evt: SortablePluginEvent): void
-    dragOverValid(evt: SortablePluginEvent): void
-    revert(evt: SortablePluginEvent): void
-    dragOverComplete(evt: SortablePluginEvent & { insertion: boolean }): void
-    dragOverAnimationCapture(evt: SortablePluginEvent): void
-    dragOverAnimationComplete(evt: SortablePluginEvent): void
-    drop(evt: SortablePluginEvent): void
-    nulling(evt: SortablePluginEvent): void
-    destroy(evt: SortablePluginEvent): void
+  interface SortableEvent extends Event {
+    clone: HTMLElement
+    /**
+     * previous list
+     */
+    from: HTMLElement
+    /**
+     * dragged element
+     */
+    item: HTMLElement
+    /**
+     * new index within parent
+     */
+    newIndex: number | undefined
+    /**
+     * old index within parent
+     */
+    oldIndex: number | undefined
+    target: HTMLElement
+    /**
+     * list, in which moved element.
+     */
+    to: HTMLElement
+    /**
+     * Old index within parent, only counting draggable elements
+     */
+    oldDraggableIndex: number | undefined
+    /**
+     * New index within parent, only counting draggable elements
+     */
+    newDraggableIndex: number | undefined
+    /**
+     * Pull mode if dragging into another sortable
+     */
+    pullMode: 'clone' | boolean | undefined
   }
-  class AutoScrollPlugin extends Plugin<AutoScrollOptions> {
-    static pluginName: 'scroll'
-    static initializeByDefault: true
-    defaults: {
-      scroll: true
-      scrollSensitivity: 30
-      scrollSpeed: 10
-      bubbleScroll: true
-    }
-    private _handleFallbackAutoScroll(evt: SortableEvent): void
-    private _handleAutoScroll(evt: SortableEvent, fallBack): void
+
+  interface MoveEvent extends Event {
+    dragged: HTMLElement
+    draggedRect: DOMRect
+    from: HTMLElement
+    /**
+     * element on which have guided
+     */
+    related: HTMLElement
+    relatedRect: DOMRect
+    to: HTMLElement
+    willInsertAfter?: boolean
   }
-  class OnSpillPlugin extends Plugin<OnSpillOptions> {
-    static pluginName: 'revertOnSpill'
-    startIndex: number | null
-  }
-  class MultiDrag extends Plugin<MultiDragOptions> {
-    static pluginName: 'multiDrag'
-  }
-  // OPTIONS
-  export interface Options extends SortableOptions, OnSpillOptions, AutoScrollOptions,MultiDragOptions {}
 
   type PullResult = ReadonlyArray<string> | boolean | 'clone'
   type PutResult = ReadonlyArray<string> | boolean
-  export interface GroupOptions {
+  interface GroupOptions {
     /**
      * group name
      */
@@ -180,7 +173,7 @@ declare namespace Sortable {
     revertClone?: boolean
   }
   type Direction = 'vertical' | 'horizontal'
-  export interface SortableOptions {
+  interface SortableOptions {
     /**
      * ms, animation speed moving items when sorting, `0` — without animation
      */
@@ -379,205 +372,8 @@ declare namespace Sortable {
      */
     onChange?: (evt: SortableEvent) => void
   }
-  export interface AutoScrollOptions {
-    /**
-     *  Enable the plugin. Can be `HTMLElement`.
-     */
-    scroll?: boolean | HTMLElement
-    /**
-     * if you have custom scrollbar scrollFn may be used for autoscrolling.
-     */
-    scrollFn?: (
-      this: Sortable,
-      offsetX: number,
-      offsetY: number,
-      originalEvent: Event,
-      touchEvt: TouchEvent,
-      hoverTargetEl: HTMLElement
-    ) => 'continue' | void
-    /**
-     * `px`, how near the mouse must be to an edge to start scrolling.
-     */
-    scrollSensitivity?: number
-    /**
-     * `px`, speed of the scrolling.`
-     */
-    scrollSpeed?: number
-    /**
-     * apply autoscroll to all parent elements, allowing for easier movement.
-     */
-    bubbleScroll?: boolean
-  }
 
-  export interface OnSpillOptions {
-    /**
-     * This plugin, when enabled,
-     * will cause the dragged item to be reverted to it's original position if it is *spilled*
-     * (ie. it is dropped outside of a valid Sortable drop target)
-     */
-    revertOnSpill?: boolean
-    /**
-     * This plugin, when enabled,
-     * will cause the dragged item to be removed from the DOM if it is *spilled*
-     * (ie. it is dropped outside of a valid Sortable drop target)
-     */
-    removeOnSpill?: boolean
-    /**
-     * Called when either `revertOnSpill` or `RemoveOnSpill` plugins are enabled.
-     */
-    onSpill?: (evt: SortableEvent) => void
-  }
-  export interface MultiDragOptions {
-    /**
-     * Enable the plugin
-     */
-    multiDrag?: boolean
-    /**
-     * Class name for selected item
-     */
-    selectedClass?: string
-    /**
-     * Key that must be down for items to be selected
-     */
-    // todo: create a type
-    // todo: check source code for type
-    multiDragKey?: null
-
-    /**
-     * Called when an item is selected
-     */
-    onSelect?: (event: SortableEvent) => void
-
-    /**
-     * Called when an item is deselected
-     */
-    onDeselect?: (event: SortableEvent) => void
-  }
-
-  // EVENTS
-  export interface SortableEvent extends Event {
-    clone: HTMLElement
-    /**
-     * previous list
-     */
-    from: HTMLElement
-    /**
-     * dragged element
-     */
-    item: HTMLElement
-    /**
-     * new index within parent
-     */
-    newIndex: number | undefined
-    /**
-     * old index within parent
-     */
-    oldIndex: number | undefined
-    target: HTMLElement
-    /**
-     * list, in which moved element.
-     */
-    to: HTMLElement
-  }
-
-  export interface MoveEvent extends Event {
-    dragged: HTMLElement
-    draggedRect: DOMRect
-    from: HTMLElement
-    /**
-     * element on which have guided
-     */
-    related: HTMLElement
-    relatedRect: DOMRect
-    to: HTMLElement
-    willInsertAfter?: boolean
-  }
-  /**
-   * An object with the following properties is passed as an argument to each plugin event when it is fired.
-   *
-   * https://github.com/SortableJS/Sortable/blob/master/plugins/README.md#event-object
-   */
-  export interface SortablePluginEvent {
-    dragEl: HTMLElement
-    parentEl: HTMLElement
-    ghostEl: HTMLElement | undefined
-    rootEl: HTMLElement | undefined
-    nextEl: HTMLElement
-    cloneEl: HTMLElement | undefined
-    cloneHidden: boolean
-    dragStarted: boolean
-    putSortable: Sortable | undefined
-    activeSortable: Sortable
-    originalEvent: Event
-    // not undefinable?
-    oldIndex: number
-    oldDraggableIndex: number
-    newIndex: number
-    newDraggableIndex: number
-
-    cloneNowHidden: () => void
-    cloneNowShown: () => void
-    hideGhostForTarget: () => void
-    unhideGhostForTarget: () => void
-    dispatchSortableEvent: (eventName: String) => void
-  }
-  export interface MultiDragEvent extends SortablePluginEvent {
-    /**
-     * Array of selected items, or empty
-     */
-    items: HTMLElement[]
-    /**
-     * Array of clones, or empty
-     */
-    clones: HTMLElement[]
-    /**
-     * Array containing information on the old indicies of the selected elements.
-     */
-    oldIndicies: Index[]
-    /**
-     * Array containing information on the new indicies of the selected elements.
-     * 
-     * For any event that is fired during sorting, the index of any selected element that is not the main dragged element is given as -1.
-     * This is because it has either been removed from the DOM, or because it is in a folding animation (folding to the dragged element) and will be removed after this animation is complete.
-     * 
-     */
-    newIndicies: Index[]
-  }
-  export interface Index {
-    element: HTMLElement
-    index: number
-  }
-  /**
-   * This event is passed to dragover events, and extends the normal event object.
-   *
-   * https://github.com/SortableJS/Sortable/blob/master/plugins/README.md#dragoverevent-object
-   */
-  export interface DragOverEvent extends Event {
-    isOwner: boolean
-    axis: 'vertical' | 'horizontal'
-    revert: boolean
-    dragRect: DOMRect
-    targetRect: DOMRect
-    canSort: boolean
-    fromSortable: Sortable
-    target: HTMLElement
-
-    // assumed return value types are the same as `options.onMove()`
-    onMove: (target: HTMLElement, after: boolean) => boolean | -1 | 1
-    changed: () => void
-    completed: (insertion: boolean) => void
-  }
-  export interface DOMRect {
-    bottom: number
-    height: number
-    left: number
-    right: number
-    top: number
-    width: number
-    x: number
-    y: number
-  }
-  export interface Utils {
+  interface Utils {
     /**
      * Attach an event handler function
      * @param element an HTMLElement.
@@ -653,5 +449,16 @@ declare namespace Sortable {
      * @param state a class's state.
      */
     toggleClass(element: HTMLElement, name: string, state: boolean): void
+  }
+
+  interface DOMRect {
+    bottom: number
+    height: number
+    left: number
+    right: number
+    top: number
+    width: number
+    x: number
+    y: number
   }
 }

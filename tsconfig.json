@@ -1,23 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "noImplicitAny": true,
-    "outDir": "dist",
-    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "noEmit": true,
-    "jsx": "react",
-    "allowJs": true,
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true,
-    "isolatedModules": true,
-    "module": "esnext",
-    "downlevelIteration": true
+    "incremental": true, /* Enable incremental compilation */
+    "target": "es5", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
+    "module": "CommonJS", /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
+    "jsx": "react", /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
+    "declaration": true, /* Generates corresponding '.d.ts' file. */
+    "declarationMap": true, /* Generates a sourcemap for each corresponding '.d.ts' file. */
+    "sourceMap": true, /* Generates corresponding '.map' file. */
+    "outFile": "dist/index.js", /* Concatenate and emit output to single file. */
+    "emitDeclarationOnly": true,
+    "strict": true, /* Enable all strict type-checking options. */
+    "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "__tests__", "__exclude__"]
 }
