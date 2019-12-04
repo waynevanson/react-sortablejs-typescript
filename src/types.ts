@@ -2,7 +2,7 @@ import Sortable, { SortableEvent, Options, MoveEvent } from 'sortablejs'
 
 import { ForwardRefExoticComponent, RefAttributes, ReactHTML, CSSProperties } from 'react'
 
-import { ReactSortable } from '.'
+import { ReactSortable } from './react-sortable'
 
 //
 // TYPES

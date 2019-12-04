@@ -1,4 +1,4 @@
-import { hydrate, render } from "react-dom";
+import React, { hydrate, render } from "react-dom";
 import { App } from "./app";
 
 const element = document.getElementById("app");

@@ -13,10 +13,12 @@
   ],
   "scripts": {
     "start": "parcel examples/index.html --open ",
-    "watch": "parcel watch src/index.ts",
-    "build": "parcel build src/index.ts",
-    "build:examples": "ts-node scripts/build-examples.tsx && parcel build scripts/index.html",
-    "test": "jest"
+    "build": " yarn package && yarn types",
+    "package": "parcel build src/index.ts",
+    "types": "tsc -p tsconfig.build.json",
+    "test": "jest",
+    "examples": "ts-node scripts/build-examples.tsx && parcel build scripts/index.html --out-dir docs out-file index.js",
+    "watch": "parcel watch src/index.ts"
   },
   "types": "dist/index.d.ts",
   "peerDependencies": {

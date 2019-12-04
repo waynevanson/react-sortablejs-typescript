@@ -21,6 +21,8 @@ const store: Store = { dragging: null }
 // is always an array of Objects `{}`.
 // immediate children are always the class
 
+
+
 export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   private ref: RefObject<HTMLElement>
 
