@@ -5,16 +5,16 @@
     "email": "waynevspersonal@gmail.com"
   },
   "license": "MIT",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "private": false,
-  "module": "dist/index.js",
+  "module": "dist/index.es.js",
   "files": [
     "dist"
   ],
   "scripts": {
     "start": "parcel examples/index.html --open ",
     "build": " yarn package && yarn types",
-    "package": "parcel build src/index.ts",
+    "package": "parcel build src/index.ts out-file index.es.js",
     "types": "tsc -p tsconfig.build.json",
     "test": "jest",
     "examples": "ts-node scripts/build-examples.tsx && parcel build scripts/index.html --out-dir docs out-file index.js",
