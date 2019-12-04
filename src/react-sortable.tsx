@@ -8,7 +8,6 @@ import {
   UnHandledMethodNames
 } from './types'
 import { destructurePropsForOptions, insertNodeAt, modifyChildren, removeNode } from './util'
-import { throwStatement } from '@babel/types'
 
 /** Holds a global reference for which react element is being dragged */
 const store: Store = { dragging: null }
@@ -17,11 +16,18 @@ const store: Store = { dragging: null }
  * A component for making the first layer of children sortable,
  * using `SortableJS` to manipulate the DOM.
  */
+// todo: make assumptions about input
+// always contains ID or UUID. function or name can be past as identifier
+// is always an array of Objects `{}`.
+// immediate children are always the class
+
 export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
   private ref: RefObject<HTMLElement>
 
   constructor(props: ReactSortableProps<T>) {
     super(props)
+    // todo: forward ref this whole component.
+    //
     this.ref = createRef<HTMLElement>()
   }
 
@@ -41,7 +47,19 @@ export class ReactSortable<T> extends Component<ReactSortableProps<T>> {
     const classicProps = { style, className }
     const tagCheck = !tag || tag === null ? 'div' : tag
     const newChildren: ReactNode = modifyChildren(this.props)
-    return createElement(tagCheck, { ref: this.ref, ...classicProps }, newChildren)
+    return createElement(
+      tagCheck,
+      {
+        // todo: add forward and assign it as per below
+        // will this cook up 
+        ref: r => {
+          this.ref = r
+          // forwardedRef = r
+        },
+        ...classicProps
+      },
+      newChildren
+    )
   }
 
   /** Appends the `sortable` property to this component */
