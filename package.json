@@ -5,22 +5,22 @@
     "email": "waynevspersonal@gmail.com"
   },
   "license": "MIT",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "private": false,
-  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/src/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "local-types"
   ],
   "scripts": {
-    "start": "parcel examples/index.html --open ",
-    "build": " yarn package && yarn types",
-    "package": "parcel build src/index.ts out-file index.es.js",
-    "types": "tsc -p tsconfig.build.json",
+    "start": "parcel examples/index.html --open --out-dir server ",
+    "build": " rollup -c",
     "test": "jest",
-    "examples": "ts-node scripts/build-examples.tsx && parcel build scripts/index.html --out-dir docs out-file index.js",
+    "examples": "ts-node examples/scripts/build-examples.tsx && parcel build examples/scripts/index.html --out-dir docs",
     "watch": "parcel watch src/index.ts"
   },
-  "types": "dist/index.d.ts",
   "peerDependencies": {
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
@@ -42,6 +42,9 @@
     "parcel-bundler": "^1.12.4",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
+    "rollup": "^1.27.8",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-typescript2": "^0.25.3",
     "styled-components": "^4.3.2",
     "ts-node": "^8.5.4",
     "typescript": "^3.6.3"
