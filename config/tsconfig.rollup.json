@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "es6",
+        "outDir": "dist",
+        "declarationDir": "dist",
+        "jsx": "react",
+        "declarationMap": true,
+        "declaration": true,
+        "noImplicitAny": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "allowSyntheticDefaultImports": true,
+        "downlevelIteration": true
+    },
+    "include": [
+        "../src",
+        "../src/local-types/sortablejs"
+    ],
+}

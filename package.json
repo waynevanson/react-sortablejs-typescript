@@ -5,22 +5,22 @@
     "email": "waynevspersonal@gmail.com"
   },
   "license": "MIT",
-  "version": "2.0.2",
+  "version": "2.0.9",
   "private": false,
-  "module": "dist/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "local-types"
   ],
   "scripts": {
-    "start": "parcel examples/index.html --open ",
-    "build": " yarn package && yarn types",
-    "package": "parcel build src/index.ts",
-    "types": "tsc -p tsconfig.build.json",
-    "test": "jest",
-    "examples": "ts-node scripts/build-examples.tsx && parcel build scripts/index.html --out-dir docs out-file index.js",
-    "watch": "parcel watch src/index.ts"
+    "start": "parcel examples/index.html --open --out-dir .server ",
+    "build": " rollup --config config/rollup.config.js",
+    "watch": "parcel watch src/index.ts",
+    "examples": "ts-node examples/scripts/build-examples.tsx && parcel build examples/scripts/index.html --out-dir docs",
+    "test": "jest"
   },
-  "types": "dist/index.d.ts",
   "peerDependencies": {
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
@@ -36,12 +36,15 @@
     "@types/node": "12.7.5",
     "@types/react": "16.9.2",
     "@types/react-dom": "16.9.0",
-    "@types/sortablejs": "file:local-types/sortablejs",
+    "@types/sortablejs": "file:src/local-types/sortablejs",
     "@types/styled-components": "^4.1.19",
     "cheerio": "^1.0.0-rc.3",
     "parcel-bundler": "^1.12.4",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
+    "rollup": "^1.27.8",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-typescript2": "^0.25.3",
     "styled-components": "^4.3.2",
     "ts-node": "^8.5.4",
     "typescript": "^3.6.3"

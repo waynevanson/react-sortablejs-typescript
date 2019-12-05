@@ -4,7 +4,7 @@ import { join } from "path";
 import React from "react";
 import { renderToString } from "react-dom/server";
 import { ServerStyleSheet } from "styled-components";
-import { App } from "../examples/app";
+import { App } from "../app";
 
 const sheet = new ServerStyleSheet();
 
