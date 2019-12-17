@@ -1,6 +1,6 @@
 # DEPRECATED
 
-This has now been merged into (react-sortablejs)[https://github.com/SortableJS/react-sortablejs]
+This has now been merged into [react-sortablejs](https://github.com/SortableJS/react-sortablejs)
 
 # `react-sortablejs-typescript`
 
