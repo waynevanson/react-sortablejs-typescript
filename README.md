@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This has now been merged into (react-sortablejs)[https://github.com/SortableJS/react-sortablejs]
+
 # `react-sortablejs-typescript`
 
 React component wrapping [SortableJS](https://github.com/SortableJS/Sortable) written in Typescript!
